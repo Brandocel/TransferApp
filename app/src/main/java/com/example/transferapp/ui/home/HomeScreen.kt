@@ -105,25 +105,21 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                     selectedOption = selectedHotel?.name,
                     onOptionSelected = { hotelName ->
                         selectedHotel = data.hotels.firstOrNull { it.name == hotelName }
-                        selectedPickup = null
+                        selectedPickup = data.pickups.firstOrNull { it.hotelId == selectedHotel?.id }
                     },
                     enabled = selectedZone != null
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Selector de pickups
-                FilterDropdown(
-                    label = "Selecciona un Horario de Recogida",
-                    options = if (selectedHotel != null) {
-                        data.pickups.filter { it.hotelId == selectedHotel!!.id }
-                            .map { it.pickupTime }
-                    } else emptyList(),
-                    selectedOption = selectedPickup?.pickupTime,
-                    onOptionSelected = { pickupTime ->
-                        selectedPickup = data.pickups.firstOrNull { it.pickupTime == pickupTime }
-                    },
-                    enabled = selectedHotel != null
+                // Mostrar el horario de recogida (Pickup)
+                OutlinedTextField(
+                    value = selectedPickup?.pickupTime ?: "Sin horario de recogida",
+                    onValueChange = {}, // No se permite edición
+                    label = { Text("Horario de Recogida") },
+                    readOnly = true,
+                    enabled = false,
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -153,6 +149,11 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                             adults = ""
                             children = ""
                             clientNameEnabled = false
+                        } else {
+                            // Calcula automáticamente el valor de niños
+                            val paxValue = pax.toIntOrNull() ?: 0
+                            val adultsValue = adults.toIntOrNull() ?: 0
+                            children = calculateChildren(paxValue, adultsValue).toString()
                         }
                     },
                     label = { Text("Número de Asientos (Pax)") },
@@ -170,7 +171,10 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                         value = adults,
                         onValueChange = {
                             adults = it.filter { char -> char.isDigit() }
-                            clientNameEnabled = validatePax(adults, children, pax.toIntOrNull())
+                            val paxValue = pax.toIntOrNull() ?: 0
+                            val adultsValue = adults.toIntOrNull() ?: 0
+                            children = calculateChildren(paxValue, adultsValue).toString()
+                            clientNameEnabled = validatePax(adults, children, pax)
                         },
                         label = { Text("Adultos") },
                         enabled = adultsEnabled,
@@ -178,12 +182,10 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                     )
                     OutlinedTextField(
                         value = children,
-                        onValueChange = {
-                            children = it.filter { char -> char.isDigit() }
-                            clientNameEnabled = validatePax(adults, children, pax.toIntOrNull())
-                        },
-                        label = { Text("Niños") },
-                        enabled = adultsEnabled,
+                        onValueChange = {}, // No permite edición
+                        label = { Text("Niños (Automático)") },
+                        readOnly = true,
+                        enabled = false,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -209,10 +211,15 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
     }
 }
 
-// Función de validación (no @Composable)
-fun validatePax(adults: String, children: String, pax: Int?): Boolean {
+// Función de validación
+fun validatePax(adults: String, children: String, pax: String): Boolean {
     val total = (adults.toIntOrNull() ?: 0) + (children.toIntOrNull() ?: 0)
-    return total == pax
+    return total == (pax.toIntOrNull() ?: 0)
+}
+
+// Función para calcular el número de niños
+fun calculateChildren(pax: Int, adults: Int): Int {
+    return (pax - adults).coerceAtLeast(0) // Asegura que no sea negativo
 }
 
 
