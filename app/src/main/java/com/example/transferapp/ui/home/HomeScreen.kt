@@ -13,6 +13,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.transferapp.data.model.Agency
 import com.example.transferapp.data.model.Hotel
+import com.example.transferapp.data.model.Pickup
+import com.example.transferapp.data.model.Store
 import com.example.transferapp.data.model.Zone
 import com.example.transferapp.data.model.Unit as ModelUnit
 import com.example.transferapp.viewmodel.HomeViewModel
@@ -23,8 +25,10 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
     val homeData by homeViewModel.homeData.collectAsState()
 
     var selectedZone by remember { mutableStateOf<Zone?>(null) }
+    var selectedStore by remember { mutableStateOf<Store?>(null) }
     var selectedAgency by remember { mutableStateOf<Agency?>(null) }
     var selectedHotel by remember { mutableStateOf<Hotel?>(null) }
+    var selectedPickup by remember { mutableStateOf<Pickup?>(null) }
     var selectedUnit by remember { mutableStateOf<ModelUnit?>(null) }
 
     LaunchedEffect(Unit) {
@@ -45,10 +49,27 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                     selectedOption = selectedZone?.name,
                     onOptionSelected = { zoneName ->
                         selectedZone = data.zones.firstOrNull { it.name == zoneName }
+                        selectedStore = null
                         selectedAgency = null
                         selectedHotel = null
+                        selectedPickup = null
                         selectedUnit = null
                     }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Selector de tiendas
+                FilterDropdown(
+                    label = "Selecciona una Tienda",
+                    options = if (selectedZone != null) {
+                        data.stores.filter { it.zoneId == selectedZone!!.id }.map { it.name }
+                    } else emptyList(),
+                    selectedOption = selectedStore?.name,
+                    onOptionSelected = { storeName ->
+                        selectedStore = data.stores.firstOrNull { it.name == storeName }
+                    },
+                    enabled = selectedZone != null
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -56,11 +77,10 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                 // Selector de agencias
                 FilterDropdown(
                     label = "Selecciona una Agencia",
-                    options = if (selectedZone != null) data.agencies.map { it.name } else emptyList(),
+                    options = data.agencies.map { it.name },
                     selectedOption = selectedAgency?.name,
                     onOptionSelected = { agencyName ->
                         selectedAgency = data.agencies.firstOrNull { it.name == agencyName }
-                        selectedHotel = null
                         selectedUnit = null
                     },
                     enabled = selectedZone != null
@@ -77,9 +97,25 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                     selectedOption = selectedHotel?.name,
                     onOptionSelected = { hotelName ->
                         selectedHotel = data.hotels.firstOrNull { it.name == hotelName }
-                        selectedUnit = null
+                        selectedPickup = null
                     },
                     enabled = selectedZone != null
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Selector de pickups
+                FilterDropdown(
+                    label = "Selecciona un Horario de Recogida",
+                    options = if (selectedHotel != null) {
+                        data.pickups.filter { it.hotelId == selectedHotel!!.id }
+                            .map { it.pickupTime }
+                    } else emptyList(),
+                    selectedOption = selectedPickup?.pickupTime,
+                    onOptionSelected = { pickupTime ->
+                        selectedPickup = data.pickups.firstOrNull { it.pickupTime == pickupTime }
+                    },
+                    enabled = selectedHotel != null
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -100,14 +136,12 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                 Spacer(modifier = Modifier.height(32.dp))
 
                 // Mostrar datos seleccionados
-                Text(
-                    text = "Datos seleccionados:",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                Text(text = "Datos seleccionados:")
                 Text(text = "Zona: ${selectedZone?.name ?: "No seleccionada"}")
+                Text(text = "Tienda: ${selectedStore?.name ?: "No seleccionada"}")
                 Text(text = "Agencia: ${selectedAgency?.name ?: "No seleccionada"}")
                 Text(text = "Hotel: ${selectedHotel?.name ?: "No seleccionado"}")
+                Text(text = "Horario de Recogida: ${selectedPickup?.pickupTime ?: "No seleccionado"}")
                 Text(text = "Unidad: ${selectedUnit?.name ?: "No seleccionada"}")
             }
         } ?: run {
@@ -161,3 +195,4 @@ fun FilterDropdown(
         }
     }
 }
+
