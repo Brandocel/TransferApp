@@ -1,5 +1,6 @@
 package com.example.transferapp.ui.home
 
+import android.app.DatePickerDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,13 +12,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.transferapp.data.model.Agency
-import com.example.transferapp.data.model.Hotel
-import com.example.transferapp.data.model.Pickup
-import com.example.transferapp.data.model.Store
-import com.example.transferapp.data.model.Zone
+import com.example.transferapp.data.model.*
 import com.example.transferapp.data.model.Unit as ModelUnit
 import com.example.transferapp.viewmodel.HomeViewModel
+import java.util.Calendar
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 
 @Composable
 fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
@@ -35,9 +35,12 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
     var adults by remember { mutableStateOf("") }
     var children by remember { mutableStateOf("") }
     var clientName by remember { mutableStateOf("") }
+    var selectedDate by remember { mutableStateOf("") }
 
     var adultsEnabled by remember { mutableStateOf(false) }
     var clientNameEnabled by remember { mutableStateOf(false) }
+
+    val calendar = Calendar.getInstance()
 
     LaunchedEffect(Unit) {
         homeViewModel.fetchHomeData()
@@ -49,7 +52,11 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
         }
     } else {
         homeData?.let { data ->
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()) // Habilitar desplazamiento
+            ) {
                 // Selector de zonas
                 FilterDropdown(
                     label = "Selecciona una Zona",
@@ -139,6 +146,32 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // DatePicker para seleccionar fecha
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            DatePickerDialog(
+                                navController.context,
+                                { _, year, month, dayOfMonth ->
+                                    selectedDate = "$dayOfMonth/${month + 1}/$year"
+                                },
+                                calendar.get(Calendar.YEAR),
+                                calendar.get(Calendar.MONTH),
+                                calendar.get(Calendar.DAY_OF_MONTH)
+                            ).show()
+                        }
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = if (selectedDate.isEmpty()) "Selecciona una Fecha" else selectedDate,
+                        color = if (selectedDate.isEmpty()) Color.Gray else Color.Black
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 // Input de Pax
                 OutlinedTextField(
                     value = pax,
@@ -150,7 +183,6 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                             children = ""
                             clientNameEnabled = false
                         } else {
-                            // Calcula automáticamente el valor de niños
                             val paxValue = pax.toIntOrNull() ?: 0
                             val adultsValue = adults.toIntOrNull() ?: 0
                             children = calculateChildren(paxValue, adultsValue).toString()
@@ -200,6 +232,22 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                     enabled = clientNameEnabled,
                     modifier = Modifier.fillMaxWidth()
                 )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // Mostrar datos seleccionados
+                Text(
+                    text = "Datos seleccionados:",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(text = "Zona: ${selectedZone?.name ?: "No seleccionada"}")
+                Text(text = "Tienda: ${selectedStore?.name ?: "No seleccionada"}")
+                Text(text = "Agencia: ${selectedAgency?.name ?: "No seleccionada"}")
+                Text(text = "Hotel: ${selectedHotel?.name ?: "No seleccionado"}")
+                Text(text = "Horario de Recogida: ${selectedPickup?.pickupTime ?: "No seleccionado"}")
+                Text(text = "Unidad: ${selectedUnit?.name ?: "No seleccionada"}")
+                Text(text = "Fecha: ${if (selectedDate.isEmpty()) "No seleccionada" else selectedDate}")
             }
         } ?: run {
             Text(
@@ -221,7 +269,6 @@ fun validatePax(adults: String, children: String, pax: String): Boolean {
 fun calculateChildren(pax: Int, adults: Int): Int {
     return (pax - adults).coerceAtLeast(0) // Asegura que no sea negativo
 }
-
 
 @Composable
 fun FilterDropdown(
@@ -264,4 +311,3 @@ fun FilterDropdown(
         }
     }
 }
-
