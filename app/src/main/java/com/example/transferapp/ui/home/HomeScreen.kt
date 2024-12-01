@@ -31,6 +31,14 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
     var selectedPickup by remember { mutableStateOf<Pickup?>(null) }
     var selectedUnit by remember { mutableStateOf<ModelUnit?>(null) }
 
+    var pax by remember { mutableStateOf("") }
+    var adults by remember { mutableStateOf("") }
+    var children by remember { mutableStateOf("") }
+    var clientName by remember { mutableStateOf("") }
+
+    var adultsEnabled by remember { mutableStateOf(false) }
+    var clientNameEnabled by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         homeViewModel.fetchHomeData()
     }
@@ -133,16 +141,63 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                     enabled = selectedAgency != null
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                // Mostrar datos seleccionados
-                Text(text = "Datos seleccionados:")
-                Text(text = "Zona: ${selectedZone?.name ?: "No seleccionada"}")
-                Text(text = "Tienda: ${selectedStore?.name ?: "No seleccionada"}")
-                Text(text = "Agencia: ${selectedAgency?.name ?: "No seleccionada"}")
-                Text(text = "Hotel: ${selectedHotel?.name ?: "No seleccionado"}")
-                Text(text = "Horario de Recogida: ${selectedPickup?.pickupTime ?: "No seleccionado"}")
-                Text(text = "Unidad: ${selectedUnit?.name ?: "No seleccionada"}")
+                // Input de Pax
+                OutlinedTextField(
+                    value = pax,
+                    onValueChange = {
+                        pax = it.filter { char -> char.isDigit() }
+                        adultsEnabled = pax.isNotEmpty()
+                        if (pax.isEmpty()) {
+                            adults = ""
+                            children = ""
+                            clientNameEnabled = false
+                        }
+                    },
+                    label = { Text("Número de Asientos (Pax)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Inputs de adultos y niños
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    OutlinedTextField(
+                        value = adults,
+                        onValueChange = {
+                            adults = it.filter { char -> char.isDigit() }
+                            clientNameEnabled = validatePax(adults, children, pax.toIntOrNull())
+                        },
+                        label = { Text("Adultos") },
+                        enabled = adultsEnabled,
+                        modifier = Modifier.weight(1f)
+                    )
+                    OutlinedTextField(
+                        value = children,
+                        onValueChange = {
+                            children = it.filter { char -> char.isDigit() }
+                            clientNameEnabled = validatePax(adults, children, pax.toIntOrNull())
+                        },
+                        label = { Text("Niños") },
+                        enabled = adultsEnabled,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Input de nombre del cliente
+                OutlinedTextField(
+                    value = clientName,
+                    onValueChange = { clientName = it },
+                    label = { Text("Nombre del Cliente") },
+                    enabled = clientNameEnabled,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         } ?: run {
             Text(
@@ -153,6 +208,13 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
         }
     }
 }
+
+// Función de validación (no @Composable)
+fun validatePax(adults: String, children: String, pax: Int?): Boolean {
+    val total = (adults.toIntOrNull() ?: 0) + (children.toIntOrNull() ?: 0)
+    return total == pax
+}
+
 
 @Composable
 fun FilterDropdown(
