@@ -151,7 +151,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            DatePickerDialog(
+                            val datePickerDialog = DatePickerDialog(
                                 navController.context,
                                 { _, year, month, dayOfMonth ->
                                     selectedDate = "$dayOfMonth/${month + 1}/$year"
@@ -159,7 +159,10 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                                 calendar.get(Calendar.YEAR),
                                 calendar.get(Calendar.MONTH),
                                 calendar.get(Calendar.DAY_OF_MONTH)
-                            ).show()
+                            )
+                            // Configura la fecha mínima (día siguiente)
+                            datePickerDialog.datePicker.minDate = calendar.timeInMillis + (24 * 60 * 60 * 1000) // Añade 1 día
+                            datePickerDialog.show()
                         }
                         .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
                         .padding(16.dp)
@@ -169,6 +172,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                         color = if (selectedDate.isEmpty()) Color.Gray else Color.Black
                     )
                 }
+
 
                 Spacer(modifier = Modifier.height(16.dp))
 
