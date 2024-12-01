@@ -1,11 +1,14 @@
 package com.example.transferapp.ui.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.transferapp.data.model.Agency
@@ -33,59 +36,79 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
             CircularProgressIndicator()
         }
     } else {
-        
         homeData?.let { data ->
             Column(modifier = Modifier.padding(16.dp)) {
-                // Menús desplegables
-                DropdownMenuSelection(
+                // Selector de zonas
+                FilterDropdown(
                     label = "Selecciona una Zona",
-                    items = data.zones,
-                    selectedItem = selectedZone,
-                    onItemSelected = { selectedZone = it }
+                    options = data.zones.map { it.name },
+                    selectedOption = selectedZone?.name,
+                    onOptionSelected = { zoneName ->
+                        selectedZone = data.zones.firstOrNull { it.name == zoneName }
+                        selectedAgency = null
+                        selectedHotel = null
+                        selectedUnit = null
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                DropdownMenuSelection(
+                // Selector de agencias
+                FilterDropdown(
                     label = "Selecciona una Agencia",
-                    items = if (selectedZone != null) data.agencies else emptyList(),
-                    selectedItem = selectedAgency,
-                    onItemSelected = { selectedAgency = it },
+                    options = if (selectedZone != null) data.agencies.map { it.name } else emptyList(),
+                    selectedOption = selectedAgency?.name,
+                    onOptionSelected = { agencyName ->
+                        selectedAgency = data.agencies.firstOrNull { it.name == agencyName }
+                        selectedHotel = null
+                        selectedUnit = null
+                    },
                     enabled = selectedZone != null
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                DropdownMenuSelection(
+                // Selector de hoteles
+                FilterDropdown(
                     label = "Selecciona un Hotel",
-                    items = if (selectedZone != null) {
-                        data.hotels.filter { it.zoneId == selectedZone!!.id }
+                    options = if (selectedZone != null) {
+                        data.hotels.filter { it.zoneId == selectedZone!!.id }.map { it.name }
                     } else emptyList(),
-                    selectedItem = selectedHotel,
-                    onItemSelected = { selectedHotel = it },
+                    selectedOption = selectedHotel?.name,
+                    onOptionSelected = { hotelName ->
+                        selectedHotel = data.hotels.firstOrNull { it.name == hotelName }
+                        selectedUnit = null
+                    },
                     enabled = selectedZone != null
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                DropdownMenuSelection(
+                // Selector de unidades
+                FilterDropdown(
                     label = "Selecciona una Unidad",
-                    items = if (selectedAgency != null) {
-                        data.units.filter { it.agencyId == selectedAgency!!.id }
+                    options = if (selectedAgency != null) {
+                        data.units.filter { it.agencyId == selectedAgency!!.id }.map { it.name }
                     } else emptyList(),
-                    selectedItem = selectedUnit,
-                    onItemSelected = { selectedUnit = it },
+                    selectedOption = selectedUnit?.name,
+                    onOptionSelected = { unitName ->
+                        selectedUnit = data.units.firstOrNull { it.name == unitName }
+                    },
                     enabled = selectedAgency != null
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Imprimir todos los datos obtenidos de la API
-                Text(text = "Datos recibidos de la API:", style = MaterialTheme.typography.titleMedium)
-                Text(text = "Zonas: ${data.zones.joinToString { it.name }}", style = MaterialTheme.typography.bodyMedium)
-                Text(text = "Agencias: ${data.agencies.joinToString { it.name }}", style = MaterialTheme.typography.bodyMedium)
-                Text(text = "Hoteles: ${data.hotels.joinToString { it.name }}", style = MaterialTheme.typography.bodyMedium)
-                Text(text = "Unidades: ${data.units.joinToString { it.name }}", style = MaterialTheme.typography.bodyMedium)
+                // Mostrar datos seleccionados
+                Text(
+                    text = "Datos seleccionados:",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(text = "Zona: ${selectedZone?.name ?: "No seleccionada"}")
+                Text(text = "Agencia: ${selectedAgency?.name ?: "No seleccionada"}")
+                Text(text = "Hotel: ${selectedHotel?.name ?: "No seleccionado"}")
+                Text(text = "Unidad: ${selectedUnit?.name ?: "No seleccionada"}")
             }
         } ?: run {
             Text(
@@ -98,37 +121,41 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
 }
 
 @Composable
-fun <T> DropdownMenuSelection(
+fun FilterDropdown(
     label: String,
-    items: List<T>,
-    selectedItem: T?,
-    onItemSelected: (T) -> Unit,
+    options: List<String>,
+    selectedOption: String?,
+    onOptionSelected: (String) -> Unit,
+    modifier: Modifier = Modifier,
     enabled: Boolean = true
-) where T : Any {
+) {
     var expanded by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        OutlinedTextField(
-            value = selectedItem?.toString() ?: "",
-            onValueChange = {},
-            label = { Text(label) },
-            readOnly = true,
-            enabled = enabled,
+    Column(modifier = modifier.fillMaxWidth()) {
+        Text(text = label, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .clickable(enabled) { expanded = true }
-        )
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                .clickable(enabled = enabled) { expanded = true }
+                .padding(8.dp)
+        ) {
+            Text(
+                text = selectedOption ?: "Seleccionar $label",
+                color = if (enabled) Color.Black else Color.Gray
+            )
+        }
+
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            items.forEach { item ->
+            options.forEach { option ->
                 DropdownMenuItem(
-                    text = { Text(item.toString()) },
                     onClick = {
-                        onItemSelected(item)
                         expanded = false
-                    }
+                        onOptionSelected(option)
+                    },
+                    text = { Text(option) }
                 )
             }
         }
