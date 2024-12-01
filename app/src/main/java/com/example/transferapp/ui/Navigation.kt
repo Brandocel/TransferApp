@@ -8,6 +8,7 @@ import com.example.transferapp.ui.auth.LoginScreen
 import com.example.transferapp.ui.auth.RegisterScreen
 import com.example.transferapp.ui.home.HomeScreen
 import com.example.transferapp.viewmodel.AuthViewModel
+import com.example.transferapp.viewmodel.HomeViewModel
 
 // Rutas de la app
 sealed class Screen(val route: String) {
@@ -17,7 +18,7 @@ sealed class Screen(val route: String) {
 }
 
 @Composable
-fun AppNavigation(navController: NavHostController, authViewModel: AuthViewModel) {
+fun AppNavigation(navController: NavHostController, authViewModel: AuthViewModel, homeViewModel: HomeViewModel) {
     NavHost(navController = navController, startDestination = Screen.Login.route) {
         composable(Screen.Login.route) {
             LoginScreen(navController, authViewModel)
@@ -26,7 +27,8 @@ fun AppNavigation(navController: NavHostController, authViewModel: AuthViewModel
             RegisterScreen(navController, authViewModel)
         }
         composable(Screen.Home.route) {
-            HomeScreen()
+            HomeScreen(navController, homeViewModel)
         }
+
     }
 }
