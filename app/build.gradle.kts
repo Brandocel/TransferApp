@@ -45,6 +45,9 @@ dependencies {
 
     implementation ("androidx.datastore:datastore-preferences:1.0.0")
     implementation( "androidx.datastore:datastore-core:1.0.0")
+    // Material Design Icons
+    implementation("androidx.compose.material:material-icons-core:1.5.1")
+    implementation("androidx.compose.material:material-icons-extended:1.5.1")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -55,6 +58,8 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.datastore.preferences.core.jvm)
+    implementation(libs.androidx.espresso.core)
+    implementation(libs.androidx.animation.core.lint)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

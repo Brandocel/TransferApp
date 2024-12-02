@@ -30,7 +30,10 @@ interface ApiService {
 
 
     companion object {
-        private const val BASE_URL = "https://3cf4-2806-10be-a-833e-4c3d-8eb4-5fb5-119a.ngrok-free.app/"
+        //Hosteado
+        private const val BASE_URL = "  https://aaa4-187-150-214-35.ngrok-free.app/"
+        //Local
+       // private const val BASE_URL = "https://localhost:7130/"
 
         fun create(): ApiService {
             return Retrofit.Builder()
