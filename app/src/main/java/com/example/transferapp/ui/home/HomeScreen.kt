@@ -18,11 +18,16 @@ import com.example.transferapp.viewmodel.HomeViewModel
 import java.util.Calendar
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
+import com.example.transferapp.ui.home.components.AvailabilityCard
 
 @Composable
 fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
     val isLoading by homeViewModel.isLoading.collectAsState()
     val homeData by homeViewModel.homeData.collectAsState()
+    val availabilityData by homeViewModel.availabilityData.collectAsState()
+
+    var showAvailability by remember { mutableStateOf(false) }
+
 
     var selectedZone by remember { mutableStateOf<Zone?>(null) }
     var selectedStore by remember { mutableStateOf<Store?>(null) }
@@ -238,6 +243,39 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))
+
+                Button(
+                    onClick = {
+                        showAvailability = false
+                        if (selectedUnit != null && selectedPickup != null && selectedDate.isNotEmpty()) {
+                            homeViewModel.fetchUnitAvailability(
+                                unitId = selectedUnit!!.id,
+                                pickupTime = selectedPickup!!.pickupTime,
+                                reservationDate = selectedDate,
+                                hotelId = selectedHotel!!.id
+                            )
+                            showAvailability = true
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = "Buscar Disponibilidad")
+                }
+
+                // Mostrar la tarjeta de disponibilidad si hay datos
+                Spacer(modifier = Modifier.height(16.dp))
+
+                if (showAvailability && availabilityData != null) {
+                    availabilityData?.data?.let { data ->
+                        AvailabilityCard(
+                            unitName = data.unit.name,
+                            totalSeats = data.totalSeats,
+                            occupiedSeats = data.occupiedSeats,
+                            pendingSeats = data.pendingSeats,
+                            availableSeats = data.availableSeats
+                        )
+                    }
+                }
 
                 // Mostrar datos seleccionados
                 Text(

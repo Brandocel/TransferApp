@@ -2,6 +2,7 @@ package com.example.transferapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.transferapp.data.model.AvailabilityResponse
 import com.example.transferapp.data.model.HomeData
 import com.example.transferapp.repository.HomeRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,6 +15,10 @@ class HomeViewModel(private val homeRepository: HomeRepository) : ViewModel() {
 
     private val _homeData = MutableStateFlow<HomeData?>(null)
     val homeData: StateFlow<HomeData?> = _homeData
+
+    private val _availabilityData = MutableStateFlow<AvailabilityResponse?>(null)
+    val availabilityData: StateFlow<AvailabilityResponse?> = _availabilityData
+
 
     fun fetchHomeData() {
         viewModelScope.launch {
@@ -28,7 +33,23 @@ class HomeViewModel(private val homeRepository: HomeRepository) : ViewModel() {
             }
         }
     }
+    fun fetchUnitAvailability(unitId: String, pickupTime: String, reservationDate: String, hotelId:String) {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                val response = homeRepository.getUnitAvailability(unitId, pickupTime, reservationDate, hotelId)
+                _availabilityData.value = response
+            } catch (e: Exception) {
+                _availabilityData.value = null
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
 }
+
+
 
 class HomeViewModelFactory(private val homeRepository: HomeRepository) :
     androidx.lifecycle.ViewModelProvider.Factory {

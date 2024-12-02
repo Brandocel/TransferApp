@@ -1,11 +1,13 @@
 package com.example.transferapp.data.api
 
+import com.example.transferapp.data.model.AvailabilityResponse
 import com.example.transferapp.data.model.HomeResponse
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 interface ApiService {
     @POST("api/Auth/login")
@@ -18,8 +20,17 @@ interface ApiService {
     @GET("api/Home/get-all-info")
     suspend fun getAllInfo(): HomeResponse
 
+    @GET("api/home/unit-availability")
+    suspend fun getUnitAvailability(
+        @Query("unitId") unitId: String,
+        @Query("pickupTime") pickupTime: String,
+        @Query("reservationDate") reservationDate: String,
+        @Query("hotelId") hotelId: String
+    ): AvailabilityResponse
+
+
     companion object {
-        private const val BASE_URL = "https://224d-2806-10be-7-ad2-3441-e689-db98-471a.ngrok-free.app/"
+        private const val BASE_URL = "https://3cf4-2806-10be-a-833e-4c3d-8eb4-5fb5-119a.ngrok-free.app/"
 
         fun create(): ApiService {
             return Retrofit.Builder()

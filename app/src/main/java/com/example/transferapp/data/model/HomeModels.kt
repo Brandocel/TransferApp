@@ -49,3 +49,30 @@ data class Store(
     val zoneId: String
 
 )
+
+
+
+//Ver disponibilidad
+
+data class AvailabilityResponse(
+    val success: Boolean,
+    val message: String,
+    val data: AvailabilityData
+)
+
+data class AvailabilityData(
+    val unit: UnitInfo,
+    val totalSeats: Int,
+    val occupiedSeats: Int,
+    val pendingSeats: Int,
+    val availableSeats: Int
+)
+
+data class UnitInfo(
+    val id: String,
+    val name: String
+)
+
+
+
+
