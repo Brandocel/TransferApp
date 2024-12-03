@@ -290,7 +290,11 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                                                 unitId = selectedUnit!!.id,
                                                 pickupTime = selectedPickup!!.pickupTime,
                                                 reservationDate = selectedDate,
-                                                hotelId = selectedHotel!!.id
+                                                hotelId = selectedHotel!!.id,
+                                                agencyId = selectedAgency!!.id,
+                                                client = clientName,
+                                                adult = adults.toInt()?: 0,
+                                                child = children.toInt()?: 0
                                             )
                                         )
                                     }else{

@@ -15,15 +15,27 @@ import com.example.transferapp.ui.selection.SeatSelectionScreen
 import com.example.transferapp.viewmodel.AuthViewModel
 import com.example.transferapp.viewmodel.HomeViewModel
 import com.example.transferapp.viewmodel.SeatSelectionViewModel
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 // Rutas de la app
 sealed class Screen(val route: String) {
     object Login : Screen("login")
     object Register : Screen("register")
     object Home : Screen("home")
-    object SeatSelection : Screen("seat_selection/{unitId}/{pickupTime}/{reservationDate}/{hotelId}") {
-        fun createRoute(unitId: String, pickupTime: String, reservationDate: String, hotelId: String): String {
-            return "seat_selection/$unitId/$pickupTime/$reservationDate/$hotelId"
+    object SeatSelection : Screen("seat_selection/{unitId}/{pickupTime}/{reservationDate}/{hotelId}/{agencyId}/{client}/{adult}/{child}") {
+        fun createRoute(
+            unitId: String,
+            pickupTime: String,
+            reservationDate: String,
+            hotelId: String,
+            agencyId: String,
+            client: String,
+            adult: Int,
+            child: Int
+        ): String {
+            val encodedClient = URLEncoder.encode(client, StandardCharsets.UTF_8.toString())
+            return "seat_selection/$unitId/$pickupTime/$reservationDate/$hotelId/$agencyId/$encodedClient/$adult/$child"
         }
     }
 }
@@ -51,19 +63,32 @@ fun AppNavigation(
                 navArgument("unitId") { type = NavType.StringType },
                 navArgument("pickupTime") { type = NavType.StringType },
                 navArgument("reservationDate") { type = NavType.StringType },
-                navArgument("hotelId") { type = NavType.StringType }
+                navArgument("hotelId") { type = NavType.StringType },
+                navArgument("agencyId") { type = NavType.StringType },
+                navArgument("client") { type = NavType.StringType },
+                navArgument("adult") { type = NavType.IntType },  // Cambiar a IntType
+                navArgument("child") { type = NavType.IntType }   // Cambiar a IntType
             )
         ) { backStackEntry ->
             val unitId = backStackEntry.arguments?.getString("unitId")!!
             val pickupTime = backStackEntry.arguments?.getString("pickupTime")!!
             val reservationDate = backStackEntry.arguments?.getString("reservationDate")!!
             val hotelId = backStackEntry.arguments?.getString("hotelId")!!
+            val agencyId = backStackEntry.arguments?.getString("agencyId")!!
+            val client = backStackEntry.arguments?.getString("client")!!
+            val adult = backStackEntry.arguments?.getInt("adult")!!  // Usar getInt
+            val child = backStackEntry.arguments?.getInt("child")!!  // Usar getInt
 
-            val viewModel = SeatSelectionViewModel(SeatSelectionRepository(ApiService.create()))
-            viewModel.fetchSeatStatus(unitId, pickupTime, reservationDate, hotelId)
-
-            SeatSelectionScreen(navController, viewModel)
+            SeatSelectionScreen(
+                navController = navController,
+                viewModel = seatSelectionViewModel,
+                agencyId = agencyId,
+                client = client,
+                adult = adult,
+                child = child
+            )
         }
+
     }
 
 }

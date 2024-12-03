@@ -78,17 +78,28 @@ class MainActivity : ComponentActivity() {
                             navArgument("unitId") { type = NavType.StringType },
                             navArgument("pickupTime") { type = NavType.StringType },
                             navArgument("reservationDate") { type = NavType.StringType },
-                            navArgument("hotelId") { type = NavType.StringType }
+                            navArgument("hotelId") { type = NavType.StringType },
+                            navArgument("agencyId") { type = androidx.navigation.NavType.StringType },
+                            navArgument("client") { type = NavType.StringType },
+                            navArgument("adult") { type = NavType.StringType },
+                            navArgument("child") { type = NavType.StringType }
                         )
                     ) { backStackEntry ->
                         val unitId = backStackEntry.arguments?.getString("unitId")!!
                         val pickupTime = backStackEntry.arguments?.getString("pickupTime")!!
                         val reservationDate = backStackEntry.arguments?.getString("reservationDate")!!
                         val hotelId = backStackEntry.arguments?.getString("hotelId")!!
+                        val agencyId = backStackEntry.arguments?.getString("agencyId")!!
+                        val client = backStackEntry.arguments?.getString("client")!!
+                        val adult = backStackEntry.arguments?.getString("adult")!!
+                        val child = backStackEntry.arguments?.getString("child")!!
 
                         seatSelectionViewModel.fetchSeatStatus(unitId, pickupTime, reservationDate, hotelId)
 
-                        SeatSelectionScreen(navController, seatSelectionViewModel)
+                        SeatSelectionScreen(navController, seatSelectionViewModel,   agencyId = agencyId,
+                            client = client,
+                            adult = adult.toInt(),
+                            child = child.toInt())
                     }
                 }
             }

@@ -18,7 +18,11 @@ import androidx.compose.material.icons.filled.ArrowBack
 @Composable
 fun SeatSelectionScreen(
     navController: NavController,
-    viewModel: SeatSelectionViewModel
+    viewModel: SeatSelectionViewModel,
+    agencyId: String,
+    client: String,
+    adult: Int,
+    child: Int
 ) {
     val seatStatus by viewModel.seatStatus.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -47,6 +51,14 @@ fun SeatSelectionScreen(
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
+                    // Muestra los datos heredados
+                    Text(text = "Cliente: $client")
+                    Text(text = "Agencia ID: $agencyId")
+                    Text(text = "Adultos: $adult")
+                    Text(text = "Niños: $child")
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     Text(text = "Asientos Ocupados: ${data.paid.joinToString(", ")}")
                     Text(text = "Asientos Pendientes: ${data.pending.joinToString(", ")}")
 
