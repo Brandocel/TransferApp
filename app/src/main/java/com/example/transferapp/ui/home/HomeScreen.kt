@@ -1,6 +1,7 @@
 package com.example.transferapp.ui.home
 
 import android.app.DatePickerDialog
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,6 +19,7 @@ import com.example.transferapp.viewmodel.HomeViewModel
 import java.util.Calendar
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
+import com.example.transferapp.ui.Screen
 import com.example.transferapp.ui.home.components.AvailabilityCard
 
 @Composable
@@ -279,6 +281,31 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                             pendingSeats = data.pendingSeats,
                             availableSeats = data.availableSeats
                         )
+                        if (availabilityData?.data?.availableSeats ?: 0 > 0) {
+                            Button(
+                                onClick = {
+                                    if (selectedUnit != null && selectedPickup != null && selectedDate.isNotEmpty() && selectedHotel != null) {
+                                        navController.navigate(
+                                            Screen.SeatSelection.createRoute(
+                                                unitId = selectedUnit!!.id,
+                                                pickupTime = selectedPickup!!.pickupTime,
+                                                reservationDate = selectedDate,
+                                                hotelId = selectedHotel!!.id
+                                            )
+                                        )
+                                    }else{
+                                        Log.e("Navigation", "Error: argumentos nulos o vacíos")
+                                    }
+
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 16.dp)
+                            ) {
+                                Text("Reservar")
+                            }
+                        }
+
                     }
                 }
 

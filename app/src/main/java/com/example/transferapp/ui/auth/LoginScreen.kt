@@ -19,11 +19,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lint.kotlin.metadata.Visibility
 import androidx.navigation.NavController
-import com.example.transferapp.ui.Screen
 import com.example.transferapp.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import com.example.transferapp.ui.Screen
 
 
 @Composable

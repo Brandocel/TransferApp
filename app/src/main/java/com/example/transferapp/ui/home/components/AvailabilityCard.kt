@@ -34,4 +34,5 @@ fun AvailabilityCard(
             Text(text = "Asientos Disponibles: $availableSeats")
         }
     }
+
 }

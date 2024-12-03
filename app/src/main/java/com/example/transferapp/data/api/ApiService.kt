@@ -2,6 +2,7 @@ package com.example.transferapp.data.api
 
 import com.example.transferapp.data.model.AvailabilityResponse
 import com.example.transferapp.data.model.HomeResponse
+import com.example.transferapp.data.model.SeatStatusResponse
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
@@ -27,6 +28,15 @@ interface ApiService {
         @Query("reservationDate") reservationDate: String,
         @Query("hotelId") hotelId: String
     ): AvailabilityResponse
+
+    @GET("api/Reservation/seat-status")
+    suspend fun getSeatStatus(
+        @Query("unitId") unitId: String,
+        @Query("pickupTime") pickupTime: String,
+        @Query("reservationDate") reservationDate: String,
+        @Query("hotelId") hotelId: String
+    ): SeatStatusResponse
+
 
 
     companion object {
