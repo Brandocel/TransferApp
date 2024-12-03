@@ -7,6 +7,8 @@ data class SeatStatusResponse(
 )
 
 data class SeatStatusData(
+
+    val totalSeats: Int,
     val paid: List<Int>, // Asientos ocupados
     val pending: List<Int> // Asientos pendientes
 )
