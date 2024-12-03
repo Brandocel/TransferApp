@@ -25,6 +25,8 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
     val isLoading by homeViewModel.isLoading.collectAsState()
     val homeData by homeViewModel.homeData.collectAsState()
     val availabilityData by homeViewModel.availabilityData.collectAsState()
+    val dateFormatter = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+
 
     var showAvailability by remember { mutableStateOf(false) }
 
@@ -159,12 +161,15 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                             val datePickerDialog = DatePickerDialog(
                                 navController.context,
                                 { _, year, month, dayOfMonth ->
-                                    selectedDate = "$dayOfMonth/${month + 1}/$year"
+                                    val calendar = Calendar.getInstance()
+                                    calendar.set(year, month, dayOfMonth)
+                                    selectedDate = dateFormatter.format(calendar.time)
                                 },
                                 calendar.get(Calendar.YEAR),
                                 calendar.get(Calendar.MONTH),
                                 calendar.get(Calendar.DAY_OF_MONTH)
                             )
+
                             // Configura la fecha mínima (día siguiente)
                             datePickerDialog.datePicker.minDate = calendar.timeInMillis + (24 * 60 * 60 * 1000) // Añade 1 día
                             datePickerDialog.show()
