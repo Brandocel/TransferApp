@@ -34,6 +34,8 @@ fun SeatSelectionScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val scrollState = rememberScrollState()
 
+    val maxSelectableSeats = adult + child // Total de asientos que se pueden seleccionar
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -81,7 +83,8 @@ fun SeatSelectionScreen(
                         totalSeats = data.totalSeats,
                         occupiedSeats = data.paid,
                         pendingSeats = data.pending,
-                        selectedSeats = selectedSeats
+                        selectedSeats = selectedSeats,
+                        maxSelectableSeats = maxSelectableSeats
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -90,11 +93,11 @@ fun SeatSelectionScreen(
                     Button(
                         onClick = {
                             // Acción para confirmar la reserva
-                            if (selectedSeats.size == (adult + child)) {
+                            if (selectedSeats.size == maxSelectableSeats) {
                                 // Lógica para confirmar reserva aquí
                             } else {
                                 // Mostrar mensaje de error si no se seleccionan suficientes asientos
-                                println("Por favor selecciona ${adult + child} asientos.")
+                                println("Por favor selecciona $maxSelectableSeats asientos.")
                             }
                         },
                         modifier = Modifier.fillMaxWidth()
@@ -118,7 +121,8 @@ fun SeatGrid(
     totalSeats: Int,
     occupiedSeats: List<Int>,
     pendingSeats: List<Int>,
-    selectedSeats: MutableList<Int>
+    selectedSeats: MutableList<Int>,
+    maxSelectableSeats: Int
 ) {
     val rows = (totalSeats / 4) + if (totalSeats % 4 != 0) 1 else 0
 
@@ -141,7 +145,9 @@ fun SeatGrid(
                             isSelected = seatNumber in selectedSeats,
                             onSeatSelected = { selected ->
                                 if (selected) {
-                                    selectedSeats.add(seatNumber)
+                                    if (selectedSeats.size < maxSelectableSeats) {
+                                        selectedSeats.add(seatNumber)
+                                    }
                                 } else {
                                     selectedSeats.remove(seatNumber)
                                 }
@@ -179,7 +185,9 @@ fun SeatButton(
         modifier = Modifier
             .size(70.dp)
             .clickable(enabled = isClickable) {
-                onSeatSelected(!isSelected)
+                if (isClickable) {
+                    onSeatSelected(!isSelected)
+                }
             }
     ) {
         Image(
