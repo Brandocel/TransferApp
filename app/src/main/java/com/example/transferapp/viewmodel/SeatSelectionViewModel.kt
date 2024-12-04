@@ -45,7 +45,7 @@ class SeatSelectionViewModel(private val repository: SeatSelectionRepository, pr
                 val response = apiService.addMultipleReservations(request)
                 _reservationResponse.value = response
             } catch (e: Exception) {
-                _reservationResponse.value = ReservationResponse(success = false, message = e.message ?: "Error")
+                _reservationResponse.value = ReservationResponse(success = false, message = e.message ?: "Error", data = emptyList() )
             }
         }
     }
