@@ -285,8 +285,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                         if (availabilityData?.data?.availableSeats ?: 0 > 0) {
                             Button(
                                 onClick = {
-                                    if (selectedUnit != null && selectedPickup != null && selectedDate.isNotEmpty() && selectedHotel != null) {
-                                        //val userId = runBlocking { sessionManager.authToken.first()?.let { extractUserId(it) } ?: "" }
+                                    if (clientName.isNotEmpty() && selectedUnit != null && selectedPickup != null && selectedDate.isNotEmpty() && selectedHotel != null) {
                                         navController.navigate(
                                             Screen.SeatSelection.createRoute(
                                                 unitId = selectedUnit!!.id,
@@ -301,6 +300,19 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                                                 storeId = selectedStore!!.id
                                             )
                                         )
+                                            Screen.SeatSelection.createRoute(
+                                                unitId = selectedUnit!!.id,
+                                                pickupTime = selectedPickup!!.pickupTime,
+                                                reservationDate = selectedDate,
+                                                hotelId = selectedHotel!!.id,
+                                                agencyId = selectedAgency!!.id,
+                                                client = clientName,
+                                                adult = adults.toInt(),
+                                                child = children.toInt(),
+                                                zoneId = selectedZone!!.id,
+                                                storeId = selectedStore!!.id
+                                            )
+
                                     }else{
                                         Log.e("Navigation", "Error: argumentos nulos o vacíos")
                                     }

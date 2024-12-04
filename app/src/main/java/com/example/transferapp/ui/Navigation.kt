@@ -46,9 +46,10 @@ sealed class Screen(val route: String) {
             zoneId: String,
             storeId: String
         ): String {
-            val encodedClient = URLEncoder.encode(client, StandardCharsets.UTF_8.toString())
+            val encodedClient = URLEncoder.encode(client.ifEmpty { "N/A" }, StandardCharsets.UTF_8.toString())
             return "seat_selection/$unitId/$pickupTime/$reservationDate/$hotelId/$agencyId/$encodedClient/$adult/$child/$zoneId/$storeId"
         }
+
 
     }
 }

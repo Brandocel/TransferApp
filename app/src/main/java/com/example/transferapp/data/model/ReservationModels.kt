@@ -10,7 +10,7 @@ data class MultipleReservationsRequest(
     val pickupTime: String,
     val reservationDate: String,
     val clientName: String,
-    val observations: String?,
+    val observations: String,
     val storeId: String,
     val pax: Int,
     val adults: Int,

@@ -127,7 +127,7 @@ fun SeatSelectionScreen(
                                             pickupTime = pickupTime,
                                             reservationDate = reservationDate,
                                             clientName = client,
-                                            observations = null,
+                                            observations = "Sin observaciones",
                                             storeId = storeId,
                                             pax = maxSelectableSeats,
                                             adults = adult,
