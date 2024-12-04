@@ -59,6 +59,11 @@ class SeatSelectionViewModel(
         }
     }
 
+    fun clearReservationResponse() {
+        _reservationResponse.value = null
+    }
+
+
     fun createMultipleReservations(request: MultipleReservationsRequest) {
         Log.d(TAG, "createMultipleReservations called with request: ${gson.toJson(request)}")
         viewModelScope.launch {
