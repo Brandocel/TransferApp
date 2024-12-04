@@ -294,7 +294,9 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                                                 agencyId = selectedAgency!!.id,
                                                 client = clientName,
                                                 adult = adults.toInt()?: 0,
-                                                child = children.toInt()?: 0
+                                                child = children.toInt()?: 0,
+                                                zoneId = selectedZone!!.id,
+                                                storeId = selectedStore!!.id,
                                             )
                                         )
                                     }else{

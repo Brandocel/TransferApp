@@ -82,7 +82,10 @@ class MainActivity : ComponentActivity() {
                             navArgument("agencyId") { type = androidx.navigation.NavType.StringType },
                             navArgument("client") { type = NavType.StringType },
                             navArgument("adult") { type = NavType.StringType },
-                            navArgument("child") { type = NavType.StringType }
+                            navArgument("child") { type = NavType.StringType },
+                            navArgument("zoneId") { type = NavType.StringType },
+                            navArgument("storeId") { type = NavType.StringType },
+
                         )
                     ) { backStackEntry ->
                         val unitId = backStackEntry.arguments?.getString("unitId")!!
@@ -93,13 +96,20 @@ class MainActivity : ComponentActivity() {
                         val client = backStackEntry.arguments?.getString("client")!!
                         val adult = backStackEntry.arguments?.getString("adult")!!
                         val child = backStackEntry.arguments?.getString("child")!!
+                        val zoneId = backStackEntry.arguments?.getString("zoneId")!!
+                        val storeId = backStackEntry.arguments?.getString("storeId")!!
 
                         seatSelectionViewModel.fetchSeatStatus(unitId, pickupTime, reservationDate, hotelId)
 
                         SeatSelectionScreen(navController, seatSelectionViewModel,   agencyId = agencyId,
                             client = client,
                             adult = adult.toInt(),
-                            child = child.toInt())
+                            child = child.toInt(),
+                            zoneId = zoneId,
+                            storeId = storeId,
+
+                        )
+
                     }
                 }
             }

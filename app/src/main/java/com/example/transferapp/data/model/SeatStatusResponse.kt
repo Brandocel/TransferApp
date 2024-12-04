@@ -10,5 +10,8 @@ data class SeatStatusData(
 
     val totalSeats: Int,
     val paid: List<Int>, // Asientos ocupados
-    val pending: List<Int> // Asientos pendientes
+    val pending: List<Int>, // Asientos pendientes
+    val unitId: String,
+    val pickupTime: String,
+    val ReservationDate: String
 )

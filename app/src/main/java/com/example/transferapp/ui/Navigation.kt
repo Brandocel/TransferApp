@@ -23,7 +23,7 @@ sealed class Screen(val route: String) {
     object Login : Screen("login")
     object Register : Screen("register")
     object Home : Screen("home")
-    object SeatSelection : Screen("seat_selection/{unitId}/{pickupTime}/{reservationDate}/{hotelId}/{agencyId}/{client}/{adult}/{child}") {
+    object SeatSelection : Screen("seat_selection/{unitId}/{pickupTime}/{reservationDate}/{hotelId}/{agencyId}/{client}/{adult}/{child}/{zoneId}/{storeId}") {
         fun createRoute(
             unitId: String,
             pickupTime: String,
@@ -32,10 +32,12 @@ sealed class Screen(val route: String) {
             agencyId: String,
             client: String,
             adult: Int,
-            child: Int
+            child: Int,
+            zoneId: String,
+            storeId:String
         ): String {
             val encodedClient = URLEncoder.encode(client, StandardCharsets.UTF_8.toString())
-            return "seat_selection/$unitId/$pickupTime/$reservationDate/$hotelId/$agencyId/$encodedClient/$adult/$child"
+            return "seat_selection/$unitId/$pickupTime/$reservationDate/$hotelId/$agencyId/$encodedClient/$adult/$child/$zoneId/$storeId"
         }
     }
 }
@@ -67,7 +69,9 @@ fun AppNavigation(
                 navArgument("agencyId") { type = NavType.StringType },
                 navArgument("client") { type = NavType.StringType },
                 navArgument("adult") { type = NavType.IntType },  // Cambiar a IntType
-                navArgument("child") { type = NavType.IntType }   // Cambiar a IntType
+                navArgument("child") { type = NavType.IntType } ,  // Cambiar a IntType
+                navArgument("zoneId") { type = NavType.StringType },
+                navArgument("storeId") { type = NavType.StringType },
             )
         ) { backStackEntry ->
             val unitId = backStackEntry.arguments?.getString("unitId")!!
@@ -78,6 +82,8 @@ fun AppNavigation(
             val client = backStackEntry.arguments?.getString("client")!!
             val adult = backStackEntry.arguments?.getInt("adult")!!  // Usar getInt
             val child = backStackEntry.arguments?.getInt("child")!!  // Usar getInt
+            val zoneId = backStackEntry.arguments?.getString("zoneId")!!
+            val storeId = backStackEntry.arguments?.getString("storeId")!!
 
             SeatSelectionScreen(
                 navController = navController,
@@ -85,7 +91,9 @@ fun AppNavigation(
                 agencyId = agencyId,
                 client = client,
                 adult = adult,
-                child = child
+                child = child,
+                zoneId = zoneId,
+                storeId = storeId
             )
         }
 

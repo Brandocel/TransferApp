@@ -28,7 +28,9 @@ fun SeatSelectionScreen(
     agencyId: String,
     client: String,
     adult: Int,
-    child: Int
+    child: Int,
+    zoneId:String,
+    storeId: String
 ) {
     val seatStatus by viewModel.seatStatus.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -62,10 +64,12 @@ fun SeatSelectionScreen(
                         .padding(16.dp)
                 ) {
                     // Mostrar datos heredados
+                    Text(text = "ZoneId: $zoneId")
                     Text(text = "Cliente: $client")
                     Text(text = "Agencia ID: $agencyId")
                     Text(text = "Adultos: $adult")
                     Text(text = "Niños: $child")
+                    Text(text = "Store: $storeId")
 
                     Spacer(modifier = Modifier.height(16.dp))
 

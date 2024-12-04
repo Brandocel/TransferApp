@@ -2,7 +2,7 @@
 <network-security-config>
     <domain-config cleartextTrafficPermitted="true">
         <!-- Cambia esto a tu dominio o IP -->
-        <domain includeSubdomains="true">https://3bf3-189-174-127-155.ngrok-free.app</domain>
+        <domain includeSubdomains="true">https://f269-189-174-200-94.ngrok-free.app</domain>
         <domain includeSubdomains="true">10.0.2.2</domain>
     </domain-config>
 </network-security-config>
