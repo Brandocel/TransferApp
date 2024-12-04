@@ -2,6 +2,8 @@ package com.example.transferapp.data.api
 
 import com.example.transferapp.data.model.AvailabilityResponse
 import com.example.transferapp.data.model.HomeResponse
+import com.example.transferapp.data.model.MultipleReservationsRequest
+import com.example.transferapp.data.model.ReservationResponse
 import com.example.transferapp.data.model.SeatStatusResponse
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -37,6 +39,8 @@ interface ApiService {
         @Query("hotelId") hotelId: String
     ): SeatStatusResponse
 
+    @POST("api/Reservation/add-multiple-reservations")
+    suspend fun addMultipleReservations(@Body request: MultipleReservationsRequest): ReservationResponse
 
 
     companion object {

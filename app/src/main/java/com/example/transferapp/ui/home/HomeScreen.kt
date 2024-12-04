@@ -21,6 +21,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import com.example.transferapp.ui.Screen
 import com.example.transferapp.ui.home.components.AvailabilityCard
+import kotlinx.coroutines.runBlocking
 
 @Composable
 fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
@@ -285,6 +286,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                             Button(
                                 onClick = {
                                     if (selectedUnit != null && selectedPickup != null && selectedDate.isNotEmpty() && selectedHotel != null) {
+                                        //val userId = runBlocking { sessionManager.authToken.first()?.let { extractUserId(it) } ?: "" }
                                         navController.navigate(
                                             Screen.SeatSelection.createRoute(
                                                 unitId = selectedUnit!!.id,
@@ -293,10 +295,10 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                                                 hotelId = selectedHotel!!.id,
                                                 agencyId = selectedAgency!!.id,
                                                 client = clientName,
-                                                adult = adults.toInt()?: 0,
-                                                child = children.toInt()?: 0,
+                                                adult = adults.toInt(),
+                                                child = children.toInt(),
                                                 zoneId = selectedZone!!.id,
-                                                storeId = selectedStore!!.id,
+                                                storeId = selectedStore!!.id
                                             )
                                         )
                                     }else{

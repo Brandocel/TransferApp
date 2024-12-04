@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.transferapp.R
+import com.example.transferapp.data.model.MultipleReservationsRequest
 import com.example.transferapp.viewmodel.SeatSelectionViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,14 +30,32 @@ fun SeatSelectionScreen(
     client: String,
     adult: Int,
     child: Int,
-    zoneId:String,
-    storeId: String
+    zoneId: String,
+    storeId: String,
+    unitId: String,
+    pickupTime: String,
+    reservationDate: String,
+    hotelId: String,
+    userId: String // Se obtiene del token
 ) {
+    // Llama a fetchSeatStatus al abrir la pantalla
+    LaunchedEffect(Unit) {
+        viewModel.fetchSeatStatus(
+            unitId = unitId,
+            pickupTime = pickupTime,
+            reservationDate = reservationDate,
+            hotelId = hotelId
+        )
+    }
+
     val seatStatus by viewModel.seatStatus.collectAsState()
+    val reservationResponse by viewModel.reservationResponse.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val scrollState = rememberScrollState()
 
-    val maxSelectableSeats = adult + child // Total de asientos que se pueden seleccionar
+    val maxSelectableSeats = adult + child
+    val selectedSeats = remember { mutableStateListOf<Int>() }
+    var showDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -63,26 +82,13 @@ fun SeatSelectionScreen(
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-                    // Mostrar datos heredados
-                    Text(text = "ZoneId: $zoneId")
                     Text(text = "Cliente: $client")
                     Text(text = "Agencia ID: $agencyId")
                     Text(text = "Adultos: $adult")
                     Text(text = "Niños: $child")
-                    Text(text = "Store: $storeId")
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Text(text = "Asientos Ocupados: ${data.paid.joinToString(", ")}")
-                    Text(text = "Asientos Pendientes: ${data.pending.joinToString(", ")}")
-                    Text(text = "Asientos Totales: ${data.totalSeats}")
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Estado para los asientos seleccionados
-                    val selectedSeats = remember { mutableStateListOf<Int>() }
-
-                    // Renderizar asientos
                     SeatGrid(
                         totalSeats = data.totalSeats,
                         occupiedSeats = data.paid,
@@ -93,20 +99,60 @@ fun SeatSelectionScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Botón para confirmar selección
                     Button(
                         onClick = {
-                            // Acción para confirmar la reserva
-                            if (selectedSeats.size == maxSelectableSeats) {
-                                // Lógica para confirmar reserva aquí
-                            } else {
-                                // Mostrar mensaje de error si no se seleccionan suficientes asientos
-                                println("Por favor selecciona $maxSelectableSeats asientos.")
-                            }
+                            showDialog = true
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Confirmar Reserva")
+                        Text("Reservar")
+                    }
+
+                    if (showDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showDialog = false },
+                            title = { Text("Confirmar Reserva") },
+                            text = { Text("¿Estás seguro de querer reservar estos asientos?") },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    showDialog = false
+                                    viewModel.createMultipleReservations(
+                                        MultipleReservationsRequest(
+                                            userId = userId,
+                                            zoneId = zoneId,
+                                            agencyId = agencyId,
+                                            hotelId = hotelId,
+                                            unitId = unitId,
+                                            seatNumber = selectedSeats.toList(),
+                                            pickupTime = pickupTime,
+                                            reservationDate = reservationDate,
+                                            clientName = client,
+                                            observations = null,
+                                            storeId = storeId,
+                                            pax = maxSelectableSeats,
+                                            adults = adult,
+                                            children = child,
+                                            status = ""
+                                        )
+                                    )
+                                }) {
+                                    Text("Confirmar")
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showDialog = false }) {
+                                    Text("Cancelar")
+                                }
+                            }
+                        )
+                    }
+
+                    reservationResponse?.let {
+                        if (it.success) {
+                            Text(text = "Reserva exitosa: ${it.message}", color = Color.Green)
+                        } else {
+                            Text(text = "Error: ${it.message}", color = Color.Red)
+                        }
                     }
                 }
             } ?: run {
@@ -119,6 +165,7 @@ fun SeatSelectionScreen(
         }
     }
 }
+
 
 @Composable
 fun SeatGrid(

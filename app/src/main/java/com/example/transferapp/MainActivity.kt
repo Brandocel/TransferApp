@@ -26,9 +26,9 @@ import com.example.transferapp.viewmodel.HomeViewModel
 import com.example.transferapp.viewmodel.HomeViewModelFactory
 import com.example.transferapp.viewmodel.SeatSelectionViewModel
 import com.example.transferapp.viewmodel.SeatSelectionViewModelFactory
+import extractUserId
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.first
-
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,8 +51,17 @@ class MainActivity : ComponentActivity() {
             )
 
             val seatSelectionViewModel: SeatSelectionViewModel = viewModel(
-                factory = SeatSelectionViewModelFactory(seatSelectionRepository)
+                factory = SeatSelectionViewModelFactory(
+                    repository = seatSelectionRepository,
+                    apiService = apiService
+                )
             )
+
+            // Obtener el userId del token de sesión
+            val userId = runBlocking {
+                val token = sessionManager.authToken.first()
+                if (!token.isNullOrEmpty()) extractUserId(token) else ""
+            }
 
             // Determina la ruta inicial basado en el estado del token
             val startDestination = runBlocking {
@@ -79,13 +88,12 @@ class MainActivity : ComponentActivity() {
                             navArgument("pickupTime") { type = NavType.StringType },
                             navArgument("reservationDate") { type = NavType.StringType },
                             navArgument("hotelId") { type = NavType.StringType },
-                            navArgument("agencyId") { type = androidx.navigation.NavType.StringType },
+                            navArgument("agencyId") { type = NavType.StringType },
                             navArgument("client") { type = NavType.StringType },
-                            navArgument("adult") { type = NavType.StringType },
-                            navArgument("child") { type = NavType.StringType },
+                            navArgument("adult") { type = NavType.IntType },
+                            navArgument("child") { type = NavType.IntType },
                             navArgument("zoneId") { type = NavType.StringType },
-                            navArgument("storeId") { type = NavType.StringType },
-
+                            navArgument("storeId") { type = NavType.StringType }
                         )
                     ) { backStackEntry ->
                         val unitId = backStackEntry.arguments?.getString("unitId")!!
@@ -94,22 +102,26 @@ class MainActivity : ComponentActivity() {
                         val hotelId = backStackEntry.arguments?.getString("hotelId")!!
                         val agencyId = backStackEntry.arguments?.getString("agencyId")!!
                         val client = backStackEntry.arguments?.getString("client")!!
-                        val adult = backStackEntry.arguments?.getString("adult")!!
-                        val child = backStackEntry.arguments?.getString("child")!!
+                        val adult = backStackEntry.arguments?.getInt("adult")!!
+                        val child = backStackEntry.arguments?.getInt("child")!!
                         val zoneId = backStackEntry.arguments?.getString("zoneId")!!
                         val storeId = backStackEntry.arguments?.getString("storeId")!!
 
-                        seatSelectionViewModel.fetchSeatStatus(unitId, pickupTime, reservationDate, hotelId)
-
-                        SeatSelectionScreen(navController, seatSelectionViewModel,   agencyId = agencyId,
+                        SeatSelectionScreen(
+                            navController = navController,
+                            viewModel = seatSelectionViewModel,
+                            agencyId = agencyId,
                             client = client,
-                            adult = adult.toInt(),
-                            child = child.toInt(),
+                            adult = adult,
+                            child = child,
                             zoneId = zoneId,
                             storeId = storeId,
-
+                            unitId = unitId,
+                            pickupTime = pickupTime,
+                            reservationDate = reservationDate,
+                            hotelId = hotelId,
+                            userId = userId // Pasa aquí el userId del token
                         )
-
                     }
                 }
             }
