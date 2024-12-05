@@ -140,15 +140,45 @@ fun HomeContent(
         FilterDropdown(
             label = "Selecciona una Unidad",
             options = if (selectedAgency != null) {
-                homeData.units.filter { it.agencyId == selectedAgency!!.id }.map { it.name }
+                homeData.units
+                    .filter { it.agencyId == selectedAgency!!.id }
+                    .map { "${it.name} (${it.seatCount ?: "N/A"} asientos)" } // Concatenar el nombre y los asientos
             } else emptyList(),
-            selectedOption = selectedUnit?.name,
-            onOptionSelected = { unitName ->
+            selectedOption = selectedUnit?.let { "${it.name} (${it.seatCount ?: "N/A"} asientos)" },
+            onOptionSelected = { option ->
+                // Extraer solo el nombre del modelo para encontrar la unidad
+                val unitName = option.substringBefore(" (")
                 val unitn = homeData.units.firstOrNull { it.name == unitName }
+                Log.d("HomeContent", "Unidad Seleccionada: $unitn")
                 onUnitSelected(unitn)
             },
             enabled = selectedAgency != null
         )
+
+
+// Mostrar información de la unidad seleccionada (nombre y cantidad de asientos)
+        selectedUnit?.let { unit ->
+            Text(
+                text = "Unidad Seleccionada: ${unit.name}",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+            unit.seatCount?.let { seatCount ->
+                Text(
+                    text = "Asientos Totales: $seatCount",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            } ?: Text(
+                text = "Asientos Totales: Información no disponible",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(top = 4.dp),
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+
+
+
         Spacer(modifier = Modifier.height(16.dp))
 
         // DatePicker

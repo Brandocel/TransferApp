@@ -188,88 +188,156 @@ fun SeatSelectionScreen(
                 CircularProgressIndicator()
             }
         } else {
-            Box(modifier = Modifier.fillMaxSize()) {
-                seatStatus?.data?.let { data ->
-                    Column(
-                        modifier = Modifier
-                            .padding(paddingValues)
-                            .verticalScroll(scrollState)
-                            .fillMaxSize()
-                            .padding(16.dp)
+            seatStatus?.data?.let { data ->
+                Column(
+                    modifier = Modifier
+                        .padding(paddingValues)
+                        .verticalScroll(scrollState)
+                        .fillMaxSize()
+                        .padding(16.dp)
+                ) {
+                    // Datos del Cliente
+                    Text(text = "Cliente: $client")
+                    Text(text = "Agencia ID: $agencyId")
+                    Text(text = "Representante: $userId")
+                    Text(text = "Adultos: $adult")
+                    Text(text = "Niños: $child")
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Asientos
+                    SeatGrid(
+                        totalSeats = data.totalSeats,
+                        occupiedSeats = data.paid,
+                        pendingSeats = data.pending,
+                        selectedSeats = selectedSeats,
+                        maxSelectableSeats = maxSelectableSeats
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Botón Reservar
+                    Button(
+                        onClick = { showDialog = true },
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(text = "Cliente: $client")
-                        Text(text = "Agencia ID: $agencyId")
-                        Text(text = "Representante: $userId")
-                        Text(text = "Adultos: $adult")
-                        Text(text = "Niños: $child")
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        SeatGrid(
-                            totalSeats = data.totalSeats,
-                            occupiedSeats = data.paid,
-                            pendingSeats = data.pending,
-                            selectedSeats = selectedSeats,
-                            maxSelectableSeats = maxSelectableSeats
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Button(
-                            onClick = { showDialog = true },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Reservar")
-                        }
-
-                        if (showDialog) {
-                            AlertDialog(
-                                onDismissRequest = { showDialog = false },
-                                title = { Text("Confirmar Reserva") },
-                                text = { Text("¿Estás seguro de querer reservar estos asientos?") },
-                                confirmButton = {
-                                    TextButton(onClick = {
-                                        showDialog = false
-                                        viewModel.createMultipleReservations(
-                                            MultipleReservationsRequest(
-                                                userId = userId,
-                                                zoneId = zoneId,
-                                                agencyId = agencyId,
-                                                hotelId = hotelId,
-                                                unitId = unitId,
-                                                seatNumber = selectedSeats.toList(),
-                                                pickupTime = pickupTime,
-                                                reservationDate = reservationDate,
-                                                clientName = client,
-                                                observations = "Sin observaciones",
-                                                storeId = storeId,
-                                                pax = maxSelectableSeats,
-                                                adults = adult,
-                                                children = child,
-                                                status = ""
-                                            )
-                                        )
-                                    }) {
-                                        Text("Confirmar")
-                                    }
-                                },
-                                dismissButton = {
-                                    TextButton(onClick = { showDialog = false }) {
-                                        Text("Cancelar")
-                                    }
-                                }
-                            )
-                        }
+                        Text("Reservar")
                     }
-                } ?: run {
-                    Text(
-                        text = "No se pudieron cargar los datos de los asientos.",
-                        modifier = Modifier.padding(16.dp),
-                        color = MaterialTheme.colorScheme.error
+
+                    // Diálogo de Confirmación
+                    if (showDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showDialog = false },
+                            title = { Text("Confirmar Reserva") },
+                            text = { Text("¿Estás seguro de querer reservar estos asientos?") },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    showDialog = false
+                                    viewModel.createMultipleReservations(
+                                        MultipleReservationsRequest(
+                                            userId = userId,
+                                            zoneId = zoneId,
+                                            agencyId = agencyId,
+                                            hotelId = hotelId,
+                                            unitId = unitId,
+                                            seatNumber = selectedSeats.toList(),
+                                            pickupTime = pickupTime,
+                                            reservationDate = reservationDate,
+                                            clientName = client,
+                                            observations = "Sin observaciones",
+                                            storeId = storeId,
+                                            pax = maxSelectableSeats,
+                                            adults = adult,
+                                            children = child,
+                                            status = ""
+                                        )
+                                    )
+                                }) {
+                                    Text("Confirmar")
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showDialog = false }) {
+                                    Text("Cancelar")
+                                }
+                            }
+                        )
+                    }
+                }
+            } ?: run {
+                Text(
+                    text = "No se pudieron cargar los datos de los asientos.",
+                    modifier = Modifier.padding(16.dp),
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+
+            // Mostrar Ticket flotante si `showTicket` es true
+            if (showTicket && reservationData != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color(0xAA000000)), // Fondo translúcido
+                    contentAlignment = Alignment.Center
+                ) {
+                    TicketCard(
+                        reservation = reservationData!!,
+                        onDismiss = {
+                            // Limpiar los datos al cerrar
+                            showTicket = false
+                            reservationData = null
+                            selectedSeats.clear()
+                        }
                     )
                 }
+            }
+        }
+    }
 
-                if (showTicket && reservationData != null) {
+// Manejo del estado de la reserva
+    LaunchedEffect(reservationResponse) {
+        Log.d("SeatSelectionScreen", "Reservation response changed: $reservationResponse")
+
+        if (reservationResponse?.success == true) {
+            reservationResponse!!.data?.let { jsonData ->
+                Log.d("SeatSelectionScreen", "Reservation was successful. Data: $jsonData")
+
+                try {
+                    val reservations: List<ReservationResponseItem> = gson.fromJson(
+                        jsonData.toString(),
+                        object : TypeToken<List<ReservationResponseItem>>() {}.type
+                    )
+
+                    if (reservations.isNotEmpty()) {
+                        reservationData = reservations.first()
+                        showTicket = true
+                    } else {
+                        Log.e("SeatSelectionScreen", "Reservations list is empty.")
+                    }
+                } catch (e: Exception) {
+                    Log.e("SeatSelectionScreen", "Error parsing reservation data", e)
+                }
+            }
+        } else {
+            Log.d("SeatSelectionScreen", "Reservation failed. Message: ${reservationResponse?.message}")
+        }
+
+        // Siempre cierra el diálogo después de procesar la reserva
+        showDialog = false
+    }
+
+// Reiniciar estados al entrar en la pantalla
+    LaunchedEffect(Unit) {
+        showTicket = false
+        reservationData = null
+        selectedSeats.clear()
+    }
+
+
+
+
+//Otra seccion
+    if (showTicket && reservationData != null) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -287,9 +355,6 @@ fun SeatSelectionScreen(
                     }
                 }
             }
-        }
-    }
-}
 
 
 

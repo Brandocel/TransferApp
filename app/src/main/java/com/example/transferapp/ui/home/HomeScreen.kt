@@ -48,6 +48,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, token
         homeViewModel.fetchHomeData()
     }
 
+
     // Drawer con contenido condicional
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -60,6 +61,11 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, token
                         if (token.isNotEmpty()) {
                             homeViewModel.fetchUserReservations(token)
                         }
+                    }
+                },
+                onCloseMenu = {
+                    coroutineScope.launch {
+                        drawerState.close() // Cierra el menú cuando se llama a onCloseMenu
                     }
                 }
             )
@@ -89,7 +95,12 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, token
                         availabilityData = availabilityData,
                         paddingValues = paddingValues,
                         fetchAvailability = { unitId, pickupTime, reservationDate, hotelId ->
-                            homeViewModel.fetchUnitAvailability(unitId, pickupTime, reservationDate, hotelId)
+                            homeViewModel.fetchUnitAvailability(
+                                unitId,
+                                pickupTime,
+                                reservationDate,
+                                hotelId
+                            )
                             showAvailability = true
                         },
                         selectedZone = selectedZone,
@@ -129,3 +140,4 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, token
         }
     }
 }
+

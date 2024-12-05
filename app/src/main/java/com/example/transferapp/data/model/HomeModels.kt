@@ -1,5 +1,7 @@
 package com.example.transferapp.data.model
 
+import com.google.gson.annotations.SerializedName
+
 data class HomeResponse(
     val success: Boolean,
     val message: String,
@@ -34,8 +36,14 @@ data class Hotel(
 data class Unit(
     val id: String,
     val name: String,
-    val agencyId: String // Vinculado al ID de la Agencia
+    val agencyId: String,
+    @SerializedName("seatCount") val seatCount: Int?,
+    val pricePerSeat: Double?,
+    val description: String?
 )
+
+
+
 
 data class Pickup(
     val id: String,
