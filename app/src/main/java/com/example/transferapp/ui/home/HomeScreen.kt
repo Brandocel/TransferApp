@@ -13,10 +13,11 @@ import com.example.transferapp.ui.home.components.SideMenuContent
 import com.example.transferapp.viewmodel.HomeViewModel
 import kotlinx.coroutines.launch
 import com.example.transferapp.data.model.Unit as ModelUnit
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
-    val drawerState = rememberDrawerState(DrawerValue.Closed)
+fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, token: String) {
+    val drawerState = rememberDrawerState(DrawerValue.Closed) // Estado inicial cerrado
     val coroutineScope = rememberCoroutineScope()
 
     val isLoading by homeViewModel.isLoading.collectAsState()
@@ -41,14 +42,27 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
     var clientNameEnabled by remember { mutableStateOf(false) }
     var showAvailability by remember { mutableStateOf(false) }
 
+
+
     LaunchedEffect(Unit) {
         homeViewModel.fetchHomeData()
     }
 
+    // Drawer con contenido condicional
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            SideMenuContent()
+            SideMenuContent(
+                isLoadingReservations = homeViewModel.isLoadingReservations.collectAsState().value,
+                reservations = homeViewModel.reservations.collectAsState().value,
+                onFetchReservations = {
+                    coroutineScope.launch {
+                        if (token.isNotEmpty()) {
+                            homeViewModel.fetchUserReservations(token)
+                        }
+                    }
+                }
+            )
         }
     ) {
         Scaffold(
@@ -89,7 +103,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                         selectedPickup = selectedPickup,
                         onPickupSelected = { selectedPickup = it },
                         selectedUnit = selectedUnit,
-                        onUnitSelected = {selectedUnit = it},
+                        onUnitSelected = { selectedUnit = it },
                         pax = pax,
                         onPaxChange = { pax = it },
                         adults = adults,

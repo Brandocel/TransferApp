@@ -76,7 +76,7 @@ fun AppNavigation(
             RegisterScreen(navController, authViewModel)
         }
         composable(Screen.Home.route) {
-            HomeScreen(navController, homeViewModel)
+            HomeScreen(navController, homeViewModel, userId)
         }
         composable(
             route = Screen.SeatSelection.route,

@@ -5,11 +5,13 @@ import com.example.transferapp.data.model.HomeResponse
 import com.example.transferapp.data.model.MultipleReservationsRequest
 import com.example.transferapp.data.model.ReservationResponse
 import com.example.transferapp.data.model.SeatStatusResponse
+import com.example.transferapp.ui.home.components.Reservation
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ApiService {
@@ -44,6 +46,9 @@ interface ApiService {
         @Body request: MultipleReservationsRequest
     ): ReservationResponse
 
+    @GET("api/Home/user-reservations/{userId}")
+    suspend fun getUserReservations(@Path("userId") userId: String): ApiResponse<List<Reservation>>
+
 
 
     companion object {
@@ -62,6 +67,12 @@ interface ApiService {
     }
 
 }
+
+data class ApiResponse<T>(
+    val success: Boolean, // Indica si la operación fue exitosa
+    val message: String,  // Mensaje descriptivo de la operación
+    val data: T?          // Los datos reales (pueden ser de cualquier tipo)
+)
 
 data class LoginRequest(val email: String, val password: String)
 data class LoginResponse(val token: String, val user: User)

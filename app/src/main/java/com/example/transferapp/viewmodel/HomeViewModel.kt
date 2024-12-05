@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.transferapp.data.model.AvailabilityResponse
 import com.example.transferapp.data.model.HomeData
 import com.example.transferapp.repository.HomeRepository
+import com.example.transferapp.ui.home.components.Reservation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -18,6 +19,32 @@ class HomeViewModel(private val homeRepository: HomeRepository) : ViewModel() {
 
     private val _availabilityData = MutableStateFlow<AvailabilityResponse?>(null)
     val availabilityData: StateFlow<AvailabilityResponse?> = _availabilityData
+
+    private val _isLoadingReservations = MutableStateFlow(false)
+    val isLoadingReservations: StateFlow<Boolean> = _isLoadingReservations
+
+    private val _reservations = MutableStateFlow<List<Reservation>>(emptyList())
+    val reservations: StateFlow<List<Reservation>> = _reservations
+
+    fun fetchUserReservations(userId: String) {
+        viewModelScope.launch {
+            _isLoadingReservations.value = true
+            try {
+                val response = homeRepository.getUserReservations(userId)
+                if (response.success) {
+                    // Usa el operador `?.` para manejar el caso en que `response.data` sea nulo
+                    _reservations.value = response.data?.filter { it.status == "paid" } ?: emptyList()
+                } else {
+                    _reservations.value = emptyList() // En caso de fallo en la respuesta
+                }
+            } catch (e: Exception) {
+                _reservations.value = emptyList() // En caso de error, limpiar las reservas
+            } finally {
+                _isLoadingReservations.value = false
+            }
+        }
+    }
+
 
 
     fun fetchHomeData() {
