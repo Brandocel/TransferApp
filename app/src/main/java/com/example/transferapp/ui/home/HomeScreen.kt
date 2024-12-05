@@ -74,7 +74,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, token
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Home Screen") },
+                    title = { Text("Majestic Expedidition") },
                     navigationIcon = {
                         IconButton(onClick = { coroutineScope.launch { drawerState.open() } }) {
                             Icon(Icons.Default.Menu, contentDescription = "Abrir menú")

@@ -29,55 +29,60 @@ fun TicketCard(
                 .padding(16.dp)
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.Start
         ) {
             Text(
-                text = "Ticket de Reserva",
+                text = "Detalles de la Reserva",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
 
-            Divider(modifier = Modifier.fillMaxWidth())
+            Divider(modifier = Modifier.fillMaxWidth(), thickness = 1.dp, color = Color.Gray)
 
+            // Folio
             Text(
                 text = "Folio: ${reservation.folio}",
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold
             )
 
+            // Cliente
             Text(
                 text = "Cliente: ${reservation.clientName}",
                 style = MaterialTheme.typography.bodyMedium
             )
 
+
+
+            // Fecha y hora
             Text(
                 text = "Fecha: ${reservation.reservationDate}",
                 style = MaterialTheme.typography.bodyMedium
             )
-
             Text(
                 text = "Hora de Recogida: ${reservation.pickupTime}",
                 style = MaterialTheme.typography.bodyMedium
             )
 
+            // Asientos reservados
             Text(
                 text = "Asientos Reservados: ${reservation.seatNumber.joinToString(", ")}",
                 style = MaterialTheme.typography.bodyMedium
             )
 
+            // Detalles de pasajeros
             Text(
-                text = "Adultos: ${reservation.adults}, Niños: ${reservation.children}",
+                text = "Pasajeros (Pax): ${reservation.pax} (Adultos: ${reservation.adults}, Niños: ${reservation.children})",
                 style = MaterialTheme.typography.bodyMedium
             )
 
-            Text(
-                text = "Estado: ${reservation.status}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = if (reservation.status == "Confirmado") Color.Green else Color.Red
-            )
+
+
+
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Botón para cerrar el ticket
             Button(
                 onClick = onDismiss,
                 modifier = Modifier.fillMaxWidth()
@@ -87,5 +92,6 @@ fun TicketCard(
         }
     }
 }
+
 
 

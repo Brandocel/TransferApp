@@ -81,7 +81,7 @@ fun HomeContent(
 
         // Selector de Tiendas
         FilterDropdown(
-            label = "Selecciona una Tienda",
+            label = "Selecciona un Shopping",
             options = if (selectedZone != null) {
                 homeData.stores.filter { it.zoneId == selectedZone!!.id }.map { it.name }
             } else emptyList(),

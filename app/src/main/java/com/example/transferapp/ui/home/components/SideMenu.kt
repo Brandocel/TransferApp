@@ -33,7 +33,7 @@ fun SideMenuContent(
             // Título del menú
             item {
                 Text(
-                    text = "Menú Lateral",
+                    text ="Reservación",
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
@@ -138,6 +138,12 @@ fun ReservationCard(reservation: Reservation) {
             // Hora de recogida
             Text(
                 text = "Recogida: ${reservation.pickupTime}",
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            // Unidad modelo
+            Text(
+                text = "Unidad: ${reservation.unitName}",
                 style = MaterialTheme.typography.bodyMedium
             )
         }
