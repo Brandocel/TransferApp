@@ -1,39 +1,29 @@
 package com.example.transferapp.ui.home
 
-import android.app.DatePickerDialog
-import android.util.Log
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.transferapp.data.model.*
-import com.example.transferapp.data.model.Unit as ModelUnit
+import com.example.transferapp.ui.home.components.SideMenuContent
 import com.example.transferapp.viewmodel.HomeViewModel
-import java.util.Calendar
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.rememberScrollState
-import com.example.transferapp.ui.Screen
-import com.example.transferapp.ui.home.components.AvailabilityCard
-import kotlinx.coroutines.runBlocking
-
+import kotlinx.coroutines.launch
+import com.example.transferapp.data.model.Unit as ModelUnit
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val coroutineScope = rememberCoroutineScope()
+
     val isLoading by homeViewModel.isLoading.collectAsState()
-    val homeData by homeViewModel.homeData.collectAsState()
-    val availabilityData by homeViewModel.availabilityData.collectAsState()
-    val dateFormatter = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+    val homeData by homeViewModel.homeData.collectAsState(initial = null)
+    val availabilityData by homeViewModel.availabilityData.collectAsState(initial = null)
 
-
-    var showAvailability by remember { mutableStateOf(false) }
-
-
+    // Estados para campos
     var selectedZone by remember { mutableStateOf<Zone?>(null) }
     var selectedStore by remember { mutableStateOf<Store?>(null) }
     var selectedAgency by remember { mutableStateOf<Agency?>(null) }
@@ -49,358 +39,78 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
 
     var adultsEnabled by remember { mutableStateOf(false) }
     var clientNameEnabled by remember { mutableStateOf(false) }
-
-    val calendar = Calendar.getInstance()
+    var showAvailability by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         homeViewModel.fetchHomeData()
     }
 
-    if (isLoading) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            SideMenuContent()
         }
-    } else {
-        homeData?.let { data ->
-            Column(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .verticalScroll(rememberScrollState()) // Habilitar desplazamiento
-            ) {
-                // Selector de zonas
-                FilterDropdown(
-                    label = "Selecciona una Zona",
-                    options = data.zones.map { it.name },
-                    selectedOption = selectedZone?.name,
-                    onOptionSelected = { zoneName ->
-                        selectedZone = data.zones.firstOrNull { it.name == zoneName }
-                        selectedStore = null
-                        selectedAgency = null
-                        selectedHotel = null
-                        selectedPickup = null
-                        selectedUnit = null
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Home Screen") },
+                    navigationIcon = {
+                        IconButton(onClick = { coroutineScope.launch { drawerState.open() } }) {
+                            Icon(Icons.Default.Menu, contentDescription = "Abrir menú")
+                        }
                     }
                 )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Selector de tiendas
-                FilterDropdown(
-                    label = "Selecciona una Tienda",
-                    options = if (selectedZone != null) {
-                        data.stores.filter { it.zoneId == selectedZone!!.id }.map { it.name }
-                    } else emptyList(),
-                    selectedOption = selectedStore?.name,
-                    onOptionSelected = { storeName ->
-                        selectedStore = data.stores.firstOrNull { it.name == storeName }
-                    },
-                    enabled = selectedZone != null
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Selector de agencias
-                FilterDropdown(
-                    label = "Selecciona una Agencia",
-                    options = data.agencies.map { it.name },
-                    selectedOption = selectedAgency?.name,
-                    onOptionSelected = { agencyName ->
-                        selectedAgency = data.agencies.firstOrNull { it.name == agencyName }
-                        selectedUnit = null
-                    },
-                    enabled = selectedZone != null
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Selector de hoteles
-                FilterDropdown(
-                    label = "Selecciona un Hotel",
-                    options = if (selectedZone != null) {
-                        data.hotels.filter { it.zoneId == selectedZone!!.id }.map { it.name }
-                    } else emptyList(),
-                    selectedOption = selectedHotel?.name,
-                    onOptionSelected = { hotelName ->
-                        selectedHotel = data.hotels.firstOrNull { it.name == hotelName }
-                        selectedPickup = data.pickups.firstOrNull { it.hotelId == selectedHotel?.id }
-                    },
-                    enabled = selectedZone != null
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Mostrar el horario de recogida (Pickup)
-                OutlinedTextField(
-                    value = selectedPickup?.pickupTime ?: "Sin horario de recogida",
-                    onValueChange = {}, // No se permite edición
-                    label = { Text("Horario de Recogida") },
-                    readOnly = true,
-                    enabled = false,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Selector de unidades
-                FilterDropdown(
-                    label = "Selecciona una Unidad",
-                    options = if (selectedAgency != null) {
-                        data.units.filter { it.agencyId == selectedAgency!!.id }.map { it.name }
-                    } else emptyList(),
-                    selectedOption = selectedUnit?.name,
-                    onOptionSelected = { unitName ->
-                        selectedUnit = data.units.firstOrNull { it.name == unitName }
-                    },
-                    enabled = selectedAgency != null
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // DatePicker para seleccionar fecha
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            val datePickerDialog = DatePickerDialog(
-                                navController.context,
-                                { _, year, month, dayOfMonth ->
-                                    val calendar = Calendar.getInstance()
-                                    calendar.set(year, month, dayOfMonth)
-                                    selectedDate = dateFormatter.format(calendar.time)
-                                },
-                                calendar.get(Calendar.YEAR),
-                                calendar.get(Calendar.MONTH),
-                                calendar.get(Calendar.DAY_OF_MONTH)
-                            )
-
-                            // Configura la fecha mínima (día siguiente)
-                            datePickerDialog.datePicker.minDate = calendar.timeInMillis + (24 * 60 * 60 * 1000) // Añade 1 día
-                            datePickerDialog.show()
-                        }
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = if (selectedDate.isEmpty()) "Selecciona una Fecha" else selectedDate,
-                        color = if (selectedDate.isEmpty()) Color.Gray else Color.Black
-                    )
-                }
-
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Input de Pax
-                OutlinedTextField(
-                    value = pax,
-                    onValueChange = {
-                        pax = it.filter { char -> char.isDigit() }
-                        adultsEnabled = pax.isNotEmpty()
-                        if (pax.isEmpty()) {
-                            adults = ""
-                            children = ""
-                            clientNameEnabled = false
-                        } else {
-                            val paxValue = pax.toIntOrNull() ?: 0
-                            val adultsValue = adults.toIntOrNull() ?: 0
-                            children = calculateChildren(paxValue, adultsValue).toString()
-                        }
-                    },
-                    label = { Text("Número de Asientos (Pax)") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Inputs de adultos y niños
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    OutlinedTextField(
-                        value = adults,
-                        onValueChange = {
-                            adults = it.filter { char -> char.isDigit() }
-                            val paxValue = pax.toIntOrNull() ?: 0
-                            val adultsValue = adults.toIntOrNull() ?: 0
-                            children = calculateChildren(paxValue, adultsValue).toString()
-                            clientNameEnabled = validatePax(adults, children, pax)
-                        },
-                        label = { Text("Adultos") },
-                        enabled = adultsEnabled,
-                        modifier = Modifier.weight(1f)
-                    )
-                    OutlinedTextField(
-                        value = children,
-                        onValueChange = {}, // No permite edición
-                        label = { Text("Niños (Automático)") },
-                        readOnly = true,
-                        enabled = false,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Input de nombre del cliente
-                OutlinedTextField(
-                    value = clientName,
-                    onValueChange = { clientName = it },
-                    label = { Text("Nombre del Cliente") },
-                    enabled = clientNameEnabled,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                Button(
-                    onClick = {
-                        showAvailability = false
-                        if (selectedUnit != null && selectedPickup != null && selectedDate.isNotEmpty()) {
-                            homeViewModel.fetchUnitAvailability(
-                                unitId = selectedUnit!!.id,
-                                pickupTime = selectedPickup!!.pickupTime,
-                                reservationDate = selectedDate,
-                                hotelId = selectedHotel!!.id
-                            )
-                            showAvailability = true
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = "Buscar Disponibilidad")
-                }
-
-                // Mostrar la tarjeta de disponibilidad si hay datos
-                Spacer(modifier = Modifier.height(16.dp))
-
-                if (showAvailability && availabilityData != null) {
-                    availabilityData?.data?.let { data ->
-                        AvailabilityCard(
-                            unitName = data.unit.name,
-                            totalSeats = data.totalSeats,
-                            occupiedSeats = data.occupiedSeats,
-                            pendingSeats = data.pendingSeats,
-                            availableSeats = data.availableSeats
-                        )
-                        if (availabilityData?.data?.availableSeats ?: 0 > 0) {
-                            Button(
-                                onClick = {
-                                    if (clientName.isNotEmpty() && selectedUnit != null && selectedPickup != null && selectedDate.isNotEmpty() && selectedHotel != null) {
-                                        navController.navigate(
-                                            Screen.SeatSelection.createRoute(
-                                                unitId = selectedUnit!!.id,
-                                                pickupTime = selectedPickup!!.pickupTime,
-                                                reservationDate = selectedDate,
-                                                hotelId = selectedHotel!!.id,
-                                                agencyId = selectedAgency!!.id,
-                                                client = clientName,
-                                                adult = adults.toInt(),
-                                                child = children.toInt(),
-                                                zoneId = selectedZone!!.id,
-                                                storeId = selectedStore!!.id
-                                            )
-                                        )
-                                            Screen.SeatSelection.createRoute(
-                                                unitId = selectedUnit!!.id,
-                                                pickupTime = selectedPickup!!.pickupTime,
-                                                reservationDate = selectedDate,
-                                                hotelId = selectedHotel!!.id,
-                                                agencyId = selectedAgency!!.id,
-                                                client = clientName,
-                                                adult = adults.toInt(),
-                                                child = children.toInt(),
-                                                zoneId = selectedZone!!.id,
-                                                storeId = selectedStore!!.id
-                                            )
-
-                                    }else{
-                                        Log.e("Navigation", "Error: argumentos nulos o vacíos")
-                                    }
-
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 16.dp)
-                            ) {
-                                Text("Reservar")
-                            }
-                        }
-
-                    }
-                }
-
-                // Mostrar datos seleccionados
-                Text(
-                    text = "Datos seleccionados:",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(text = "Zona: ${selectedZone?.name ?: "No seleccionada"}")
-                Text(text = "Tienda: ${selectedStore?.name ?: "No seleccionada"}")
-                Text(text = "Agencia: ${selectedAgency?.name ?: "No seleccionada"}")
-                Text(text = "Hotel: ${selectedHotel?.name ?: "No seleccionado"}")
-                Text(text = "Horario de Recogida: ${selectedPickup?.pickupTime ?: "No seleccionado"}")
-                Text(text = "Unidad: ${selectedUnit?.name ?: "No seleccionada"}")
-                Text(text = "Fecha: ${if (selectedDate.isEmpty()) "No seleccionada" else selectedDate}")
             }
-        } ?: run {
-            Text(
-                text = "No se pudieron cargar los datos.",
-                modifier = Modifier.padding(16.dp),
-                color = MaterialTheme.colorScheme.error
-            )
-        }
-    }
-}
-
-// Función de validación
-fun validatePax(adults: String, children: String, pax: String): Boolean {
-    val total = (adults.toIntOrNull() ?: 0) + (children.toIntOrNull() ?: 0)
-    return total == (pax.toIntOrNull() ?: 0)
-}
-
-// Función para calcular el número de niños
-fun calculateChildren(pax: Int, adults: Int): Int {
-    return (pax - adults).coerceAtLeast(0) // Asegura que no sea negativo
-}
-
-@Composable
-fun FilterDropdown(
-    label: String,
-    options: List<String>,
-    selectedOption: String?,
-    onOptionSelected: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Column(modifier = modifier.fillMaxWidth()) {
-        Text(text = label, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
-        Box(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
-                .clickable(enabled = enabled) { expanded = true }
-                .padding(8.dp)
-        ) {
-            Text(
-                text = selectedOption ?: "Seleccionar $label",
-                color = if (enabled) Color.Black else Color.Gray
-            )
-        }
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            options.forEach { option ->
-                DropdownMenuItem(
-                    onClick = {
-                        expanded = false
-                        onOptionSelected(option)
-                    },
-                    text = { Text(option) }
-                )
+        ) { paddingValues ->
+            if (isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                homeData?.let {
+                    HomeContent(
+                        navController = navController,
+                        homeData = it,
+                        availabilityData = availabilityData,
+                        paddingValues = paddingValues,
+                        fetchAvailability = { unitId, pickupTime, reservationDate, hotelId ->
+                            homeViewModel.fetchUnitAvailability(unitId, pickupTime, reservationDate, hotelId)
+                            showAvailability = true
+                        },
+                        selectedZone = selectedZone,
+                        onZoneSelected = { selectedZone = it },
+                        selectedStore = selectedStore,
+                        onStoreSelected = { selectedStore = it },
+                        selectedAgency = selectedAgency,
+                        onAgencySelected = { selectedAgency = it },
+                        selectedHotel = selectedHotel,
+                        onHotelSelected = { selectedHotel = it },
+                        selectedPickup = selectedPickup,
+                        onPickupSelected = { selectedPickup = it },
+                        selectedUnit = selectedUnit,
+                        onUnitSelected = {selectedUnit = it},
+                        pax = pax,
+                        onPaxChange = { pax = it },
+                        adults = adults,
+                        onAdultsChange = { adults = it },
+                        children = children,
+                        onChildrenChange = { children = it },
+                        clientName = clientName,
+                        onClientNameChange = { clientName = it },
+                        selectedDate = selectedDate,
+                        onDateChange = { selectedDate = it },
+                        adultsEnabled = adultsEnabled,
+                        onAdultsEnabledChange = { adultsEnabled = it },
+                        clientNameEnabled = clientNameEnabled,
+                        onClientNameEnabledChange = { clientNameEnabled = it },
+                        showAvailability = showAvailability
+                    )
+                } ?: run {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("No se pudieron cargar los datos.")
+                    }
+                }
             }
         }
     }

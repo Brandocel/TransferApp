@@ -45,8 +45,9 @@ interface ApiService {
     ): ReservationResponse
 
 
+
     companion object {
-        private const val BASE_URL = " https://5032-187-150-214-35.ngrok-free.app/"
+        private const val BASE_URL = "https://f269-189-174-200-94.ngrok-free.app/"
 
         //Local
        // private const val BASE_URL = "https://localhost:7130/"
