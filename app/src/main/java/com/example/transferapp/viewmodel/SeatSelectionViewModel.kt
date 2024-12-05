@@ -29,6 +29,13 @@ class SeatSelectionViewModel(
         private const val TAG = "SeatSelectionViewModel"
     }
 
+    private val _agencyName = MutableStateFlow<String?>(null)
+    val agencyName: StateFlow<String?> = _agencyName
+
+    private val _userName = MutableStateFlow<String?>(null)
+    val userName: StateFlow<String?> = _userName
+
+
     private val gson: Gson = GsonBuilder().setPrettyPrinting().create()
 
     private val _seatStatus = MutableStateFlow<SeatStatusResponse?>(null)
@@ -137,6 +144,36 @@ class SeatSelectionViewModel(
             }
         }
     }
+
+
+    fun fetchAgencyName(agencyId: String) {
+        viewModelScope.launch {
+            try {
+                val response = repository.getAgencyNameById(agencyId)
+                Log.d("ViewModel", "Nombre de la agencia obtenido del repositorio: $response")
+                _agencyName.value = response
+                Log.d("ViewModel", "Estado actualizado: AgencyName = ${_agencyName.value}")
+            } catch (e: Exception) {
+                Log.e("ViewModel", "Error al obtener el nombre de la agencia", e)
+                _agencyName.value = "Error al cargar"
+            }
+        }
+    }
+
+    fun fetchUserName(userId: String) {
+        viewModelScope.launch {
+            try {
+                val response = repository.getUserNameById(userId)
+                Log.d("ViewModel", "Nombre del usuario obtenido del repositorio: $response")
+                _userName.value = response
+                Log.d("ViewModel", "Estado actualizado: UserName = ${_userName.value}")
+            } catch (e: Exception) {
+                Log.e("ViewModel", "Error al obtener el nombre del usuario", e)
+                _userName.value = "Error al cargar"
+            }
+        }
+    }
+
 
 
 

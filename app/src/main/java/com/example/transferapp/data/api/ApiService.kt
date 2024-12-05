@@ -1,5 +1,6 @@
 package com.example.transferapp.data.api
 
+import com.example.transferapp.data.model.Agency
 import com.example.transferapp.data.model.AvailabilityResponse
 import com.example.transferapp.data.model.HomeResponse
 import com.example.transferapp.data.model.MultipleReservationsRequest
@@ -49,6 +50,12 @@ interface ApiService {
     @GET("api/Home/user-reservations/{userId}")
     suspend fun getUserReservations(@Path("userId") userId: String): ApiResponse<List<Reservation>>
 
+    //Recuperando datos
+    @GET("/api/Agency/{id}")
+    suspend fun getAgencyInfoById(@Path("id") id: String): ApiGenericResponse<AgencyInfo>
+
+    @GET("/api/User/{id}")
+    suspend fun getUserInfoById(@Path("id") id: String): ApiGenericResponse<UserInfo>
 
 
     companion object {
@@ -74,8 +81,29 @@ data class ApiResponse<T>(
     val data: T?          // Los datos reales (pueden ser de cualquier tipo)
 )
 
+data class ApiGenericResponse<T>(
+    val success: Boolean,
+    val message: String,
+    val data: T,
+    val name: String
+)
+
+data class UserInfo(
+    val id: String,
+    val name: String,
+    val email: String,
+    val roleId: String
+)
+
+data class AgencyInfo(
+    val id: String,
+    val name: String
+)
+
+
 data class LoginRequest(val email: String, val password: String)
 data class LoginResponse(val token: String, val user: User)
 data class RegisterRequest(val email: String, val password: String, val name: String, val roleId: String)
 data class RegisterResponse(val success: Boolean, val message: String)
-data class User(val id: String, val name: String, val email: String)
+data class User(val id: String, val name: String, val email: String , val password: String,
+                val roleId: String)

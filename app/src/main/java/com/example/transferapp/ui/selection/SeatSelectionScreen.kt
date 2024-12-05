@@ -45,6 +45,8 @@ fun SeatSelectionScreen(
     userId: String // Se obtiene del token
 ) {
     LaunchedEffect(Unit) {
+        viewModel.fetchAgencyName(agencyId)
+        viewModel.fetchUserName(userId)
         viewModel.fetchSeatStatus(
             unitId = unitId,
             pickupTime = pickupTime,
@@ -57,6 +59,13 @@ fun SeatSelectionScreen(
     val reservationResponse by viewModel.reservationResponse.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val scrollState = rememberScrollState()
+
+    //Agencia,Name
+    val agencyName by viewModel.agencyName.collectAsState()
+    val userName by viewModel.userName.collectAsState()
+    // Agrega logs para confirmar los valores
+    Log.d("SeatSelectionScreen", "AgencyName en Composable: ${agencyName ?: "Cargando..."}")
+    Log.d("SeatSelectionScreen", "UserName en Composable: ${userName ?: "Cargando..."}")
 
     val maxSelectableSeats = adult + child
     val selectedSeats = remember { mutableStateListOf<Int>() }
@@ -196,10 +205,20 @@ fun SeatSelectionScreen(
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-                    // Datos del Cliente
+                    // Obtener los nombres desde el ViewModel
+                    val agencyName by viewModel.agencyName.collectAsState()
+                    val userName by viewModel.userName.collectAsState()
+
+                    // Mostrar los datos actualizados
                     Text(text = "Cliente: $client")
-                    Text(text = "Agencia ID: $agencyId")
-                    Text(text = "Representante: $userId")
+                    Text(
+                        text = "Agencia: ${agencyName ?: "Cargando..."}",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = "Representante: ${userName ?: "Cargando..."}",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
                     Text(text = "Adultos: $adult")
                     Text(text = "Niños: $child")
 
@@ -272,7 +291,7 @@ fun SeatSelectionScreen(
                 )
             }
 
-            // Mostrar Ticket flotante si `showTicket` es true
+    // Mostrar Ticket flotante si `showTicket` es true
             if (showTicket && reservationData != null) {
                 Box(
                     modifier = Modifier
