@@ -26,6 +26,7 @@ import com.example.transferapp.ui.selection.components.TicketCard
 import com.example.transferapp.viewmodel.SeatSelectionViewModel
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,6 +74,7 @@ fun SeatSelectionScreen(
     var showTicket by remember { mutableStateOf(false) }
     var reservationData by remember { mutableStateOf<ReservationResponseItem?>(null) }
     val gson = remember { Gson() }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     // Limpia el estado de showTicket y reservationData al iniciar
     LaunchedEffect(Unit) {
@@ -180,6 +182,8 @@ fun SeatSelectionScreen(
 
 
 
+
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -190,7 +194,8 @@ fun SeatSelectionScreen(
                     }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) } // Host para mostrar mensajes
     ) { paddingValues ->
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -205,20 +210,10 @@ fun SeatSelectionScreen(
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-                    // Obtener los nombres desde el ViewModel
-                    val agencyName by viewModel.agencyName.collectAsState()
-                    val userName by viewModel.userName.collectAsState()
-
                     // Mostrar los datos actualizados
                     Text(text = "Cliente: $client")
-                    Text(
-                        text = "Agencia: ${agencyName ?: "Cargando..."}",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = "Representante: ${userName ?: "Cargando..."}",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                    Text(text = "Agencia: ${agencyName ?: "Cargando..."}")
+                    Text(text = "Representante: ${userName ?: "Cargando..."}")
                     Text(text = "Adultos: $adult")
                     Text(text = "Niños: $child")
 
@@ -235,13 +230,26 @@ fun SeatSelectionScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Botón Reservar
+                    val coroutineScope = rememberCoroutineScope()
+
                     Button(
-                        onClick = { showDialog = true },
-                        modifier = Modifier.fillMaxWidth()
+                        onClick = {
+                            if (selectedSeats.size == maxSelectableSeats) {
+                                showDialog = true
+                            } else {
+                                // Llamar a `showSnackbar` dentro de la corrutina del scope
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar("Debes seleccionar exactamente $maxSelectableSeats asientos.")
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = selectedSeats.size <= maxSelectableSeats
                     ) {
                         Text("Reservar")
                     }
+
+
 
                     // Diálogo de Confirmación
                     if (showDialog) {
@@ -290,6 +298,9 @@ fun SeatSelectionScreen(
                     color = MaterialTheme.colorScheme.error
                 )
             }
+
+
+
 
     // Mostrar Ticket flotante si `showTicket` es true
             if (showTicket && reservationData != null) {

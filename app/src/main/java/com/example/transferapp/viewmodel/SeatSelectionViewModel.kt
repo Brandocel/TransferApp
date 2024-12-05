@@ -141,6 +141,7 @@ class SeatSelectionViewModel(
                 // Indicamos que la carga ha terminado
                 _isLoading.value = false
                 Log.d(TAG, "[$callId] Proceso finalizado para createMultipleReservations")
+
             }
         }
     }
@@ -173,9 +174,6 @@ class SeatSelectionViewModel(
             }
         }
     }
-
-
-
 
 
 
