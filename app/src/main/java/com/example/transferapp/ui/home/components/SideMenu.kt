@@ -57,8 +57,13 @@ fun SideMenuContent(
                     }
                 }
             } else {
-                // Lista de reservas
-                items(reservations) { reservation ->
+                // Ordenar las reservas por número del folio
+                val sortedReservations = reservations.sortedBy { reservation ->
+                    reservation.folio.filter { it.isDigit() }.toIntOrNull() ?: Int.MAX_VALUE
+                }
+
+                // Lista de reservas ordenadas
+                items(sortedReservations) { reservation ->
                     ReservationCard(reservation)
                 }
             }
@@ -78,6 +83,7 @@ fun SideMenuContent(
     }
 }
 
+
 @Composable
 fun ReservationCard(reservation: Reservation) {
     Card(
@@ -87,13 +93,57 @@ fun ReservationCard(reservation: Reservation) {
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = reservation.hotelName, style = MaterialTheme.typography.titleMedium)
-            Text(text = "Folio: ${reservation.folio}")
-            Text(text = "Pax: ${reservation.pax}, Adults: ${reservation.adults}, Children: ${reservation.children}")
-            Text(text = "Pickup: ${reservation.pickupTime}")
+            // Nombre del hotel
+            Text(
+                text = reservation.hotelName,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            // Nombre del cliente
+            Text(
+                text = "Cliente: ${reservation.clientName}",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+
+            // Folio
+            Text(
+                text = "Folio: ${reservation.folio}",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+
+            // Fecha de la reserva
+            Text(
+                text = "Fecha: ${reservation.reservationDate}",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+
+            // Asientos seleccionados
+            Text(
+                text = "Asientos: ${reservation.seatNumber}",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+
+            // Detalles de pasajeros
+            Text(
+                text = "Pax: ${reservation.pax} (Adultos: ${reservation.adults}, Niños: ${reservation.children})",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+
+            // Hora de recogida
+            Text(
+                text = "Recogida: ${reservation.pickupTime}",
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
     }
 }
+
 
 data class ReservationResponse(
     val success: Boolean,

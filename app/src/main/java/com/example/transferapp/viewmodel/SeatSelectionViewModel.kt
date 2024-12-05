@@ -1,3 +1,4 @@
+
 package com.example.transferapp.viewmodel
 
 import android.util.Log
@@ -40,24 +41,26 @@ class SeatSelectionViewModel(
     val reservationResponse: StateFlow<ReservationResponse?> = _reservationResponse
 
     fun fetchSeatStatus(unitId: String, pickupTime: String, reservationDate: String, hotelId: String) {
-        Log.d(TAG, "fetchSeatStatus called with unitId=$unitId, pickupTime=$pickupTime, reservationDate=$reservationDate, hotelId=$hotelId")
+        if (_isLoading.value) {
+            Log.w(TAG, "fetchSeatStatus está siendo ignorado porque ya hay una operación en curso.")
+            return
+        }
+
+        Log.d(TAG, "fetchSeatStatus llamado con unitId=$unitId, pickupTime=$pickupTime, reservationDate=$reservationDate, hotelId=$hotelId")
         viewModelScope.launch {
             _isLoading.value = true
-            Log.d(TAG, "Loading started for fetchSeatStatus")
             try {
-                Log.d(TAG, "Fetching seat status from repository")
                 val response = repository.getSeatStatus(unitId, pickupTime, reservationDate, hotelId)
                 Log.d(TAG, "Received seat status response: ${gson.toJson(response)}")
                 _seatStatus.value = response
             } catch (e: Exception) {
                 Log.e(TAG, "Error fetching seat status", e)
-                _seatStatus.value = null
             } finally {
                 _isLoading.value = false
-                Log.d(TAG, "Loading finished for fetchSeatStatus")
             }
         }
     }
+
 
     fun clearReservationResponse() {
         _reservationResponse.value = null
@@ -65,55 +68,76 @@ class SeatSelectionViewModel(
 
 
     fun createMultipleReservations(request: MultipleReservationsRequest) {
-        Log.d(TAG, "createMultipleReservations called with request: ${gson.toJson(request)}")
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                // Realizar la llamada a la API
-                val response = apiService.addMultipleReservations(request)
-                Log.d(TAG, "Raw response: ${gson.toJson(response)}")
+        // Log para verificar que se llama el método con el contenido de la solicitud
+        Log.d(TAG, "createMultipleReservations - Llamada iniciada con request: ${gson.toJson(request)}")
 
-                // Manejar dinámicamente si `data` es un array o un objeto
+        // Contador para identificar cuántas veces se ejecuta este método (opcional si quieres rastrear duplicados)
+        val callId = System.currentTimeMillis() // Usamos un timestamp único para rastrear cada llamada
+
+        viewModelScope.launch {
+            // Indicamos que el proceso está cargando
+            _isLoading.value = true
+            Log.d(TAG, "[$callId] Cargando...")
+
+            try {
+                // Log para indicar que estamos realizando la llamada a la API
+                Log.d(TAG, "[$callId] Realizando llamada a la API para crear múltiples reservaciones")
+
+                // Llamada a la API
+                val response = apiService.addMultipleReservations(request)
+                Log.d(TAG, "[$callId] Respuesta cruda recibida de la API: ${gson.toJson(response)}")
+
+                // Verificación del tipo de dato `data` en la respuesta y manejo dinámico
                 val reservationItems: List<ReservationResponseItem> = when {
                     response.data.isJsonArray -> {
-                        // Si `data` es un array
+                        Log.d(TAG, "[$callId] `data` en la respuesta es un arreglo")
                         gson.fromJson(response.data, object : TypeToken<List<ReservationResponseItem>>() {}.type)
                     }
                     response.data.isJsonObject -> {
-                        // Si `data` es un objeto, conviértelo en una lista de un solo elemento
+                        Log.d(TAG, "[$callId] `data` en la respuesta es un objeto")
                         listOf(gson.fromJson(response.data, ReservationResponseItem::class.java))
                     }
                     else -> {
-                        // Si `data` no es ni un array ni un objeto, devuelve una lista vacía
-                        Log.e(TAG, "Unexpected data type: ${response.data}")
-                        emptyList()
+                        Log.e(TAG, "[$callId] `data` tiene un formato inesperado: ${response.data}")
+                        emptyList() // Si el formato no es reconocido, regresamos una lista vacía
                     }
                 }
 
-                Log.d(TAG, "Processed data: $reservationItems")
+                // Log para mostrar el número de reservaciones procesadas
+                Log.d(TAG, "[$callId] Número de reservaciones procesadas: ${reservationItems.size}")
+                for ((index, reservation) in reservationItems.withIndex()) {
+                    Log.d(TAG, "[$callId] Reservación $index: ${gson.toJson(reservation)}")
+                }
+
+                // Actualizamos el estado con la respuesta procesada
                 _reservationResponse.value = ReservationResponse(
                     success = response.success,
                     message = response.message,
                     data = gson.toJsonTree(reservationItems) // Convertimos la lista de nuevo a JsonElement
                 )
             } catch (e: Exception) {
-                Log.e(TAG, "Error al crear múltiples reservaciones", e)
+                // Log detallado del error
+                Log.e(TAG, "[$callId] Error al crear múltiples reservaciones", e)
                 if (e is HttpException) {
+                    // Log para mostrar el cuerpo de error HTTP si lo hay
                     val errorBody = e.response()?.errorBody()?.string()
-                    Log.e(TAG, "Cuerpo de Error HTTP: $errorBody")
+                    Log.e(TAG, "[$callId] Cuerpo de Error HTTP: $errorBody")
                 }
-                // En caso de error, asigna un JsonElement vacío
+
+                // Asignamos una respuesta vacía en caso de error
                 _reservationResponse.value = ReservationResponse(
                     success = false,
                     message = e.message ?: "Error desconocido",
-                    data = gson.toJsonTree(emptyList<ReservationResponseItem>()) // Devuelve una lista vacía como JsonElement
+                    data = gson.toJsonTree(emptyList<ReservationResponseItem>()) // Devolvemos una lista vacía como JsonElement
                 )
             } finally {
+                // Indicamos que la carga ha terminado
                 _isLoading.value = false
-                Log.d(TAG, "Loading finished for createMultipleReservations")
+                Log.d(TAG, "[$callId] Proceso finalizado para createMultipleReservations")
             }
         }
     }
+
 
 
 

@@ -19,7 +19,12 @@ data class MultipleReservationsRequest(
     @SerializedName("adults") val adults: Int, // Número de adultos
     @SerializedName("children") val children: Int, // Número de niños
     @SerializedName("status") val status: String, // Estado de la reservación
-    @SerializedName("folio") val folio: String = "" // Folio generado o predeterminado
+    @SerializedName("folio") val folio: String = "", // Folio generado o predeterminado
+)
+data class ReservationRequest(
+    val id: String, // Campo único
+    val seatNumber: Int,
+    val otherField: String
 )
 
 data class ReservationResponse(

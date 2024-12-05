@@ -366,7 +366,8 @@ fun SeatGrid(
     selectedSeats: MutableList<Int>,
     maxSelectableSeats: Int
 ) {
-    val rows = (totalSeats / 4) + if (totalSeats % 4 != 0) 1 else 0
+    val seatsPerRow = 4 // Número de asientos por fila (2 columnas)
+    val rows = (totalSeats / seatsPerRow) + if (totalSeats % seatsPerRow != 0) 1 else 0
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -377,10 +378,12 @@ fun SeatGrid(
                 horizontalArrangement = Arrangement.SpaceAround,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                for (colIndex in 0..3) {
-                    val seatNumber = rowIndex * 4 + colIndex + 1
+                for (colIndex in 0 until seatsPerRow) {
+                    val seatNumber = rowIndex * seatsPerRow + colIndex + 1
                     if (seatNumber <= totalSeats) {
+                        val seatLabel = "${('A' + rowIndex)}${colIndex + 1}" // Genera etiqueta de asiento (ejemplo: A1, B2)
                         SeatButton(
+                            seatLabel = seatLabel,
                             seatNumber = seatNumber,
                             isOccupied = seatNumber in occupiedSeats,
                             isPending = seatNumber in pendingSeats,
@@ -405,8 +408,10 @@ fun SeatGrid(
     }
 }
 
+
 @Composable
 fun SeatButton(
+    seatLabel: String,
     seatNumber: Int,
     isOccupied: Boolean,
     isPending: Boolean,
@@ -438,10 +443,11 @@ fun SeatButton(
             modifier = Modifier.size(50.dp)
         )
         Text(
-            text = seatNumber.toString(),
+            text = seatLabel, // Muestra la etiqueta en lugar del número
             fontSize = 14.sp,
             color = Color.Black,
             textAlign = TextAlign.Center
         )
     }
 }
+
