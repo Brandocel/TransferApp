@@ -137,23 +137,19 @@ fun HomeContent(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Selector de Unidades
+        // Selector de Unidades
         FilterDropdown(
             label = "Selecciona una Unidad",
-            options = if (selectedAgency != null) {
-                homeData.units
-                    .filter { it.agencyId == selectedAgency!!.id }
-                    .map { "${it.name} (${it.seatCount ?: "N/A"} asientos)" } // Concatenar el nombre y los asientos
-            } else emptyList(),
+            options = homeData.units.map { "${it.name} (${it.seatCount ?: "N/A"} asientos)" }, // Mostrar nombre y asientos disponibles
             selectedOption = selectedUnit?.let { "${it.name} (${it.seatCount ?: "N/A"} asientos)" },
             onOptionSelected = { option ->
-                // Extraer solo el nombre del modelo para encontrar la unidad
-                val unitName = option.substringBefore(" (")
+                val unitName = option.substringBefore(" (") // Extraer solo el nombre de la unidad seleccionada
                 val unitn = homeData.units.firstOrNull { it.name == unitName }
-                Log.d("HomeContent", "Unidad Seleccionada: $unitn")
                 onUnitSelected(unitn)
             },
-            enabled = selectedAgency != null
+            enabled = true // Siempre habilitado
         )
+
 
 
 // Mostrar información de la unidad seleccionada (nombre y cantidad de asientos)
@@ -176,7 +172,6 @@ fun HomeContent(
                 color = MaterialTheme.colorScheme.error
             )
         }
-
 
 
         Spacer(modifier = Modifier.height(16.dp))
