@@ -164,7 +164,7 @@ data class Reservation(
     val hotelName: String,
     val unitName: String,
     val storeName: String,
-    val seatNumber: Int,
+    val seatNumber: List<Int>,
     val pickupTime: String,
     val reservationDate: String,
     val clientName: String,

@@ -1,5 +1,6 @@
 package com.example.transferapp.ui.home
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
@@ -59,10 +60,14 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, token
                 onFetchReservations = {
                     coroutineScope.launch {
                         if (token.isNotEmpty()) {
-                            homeViewModel.fetchUserReservations(token)
+                            Log.d("HomeScreen", "Token no está vacío, llamando a fetchUserReservations con token: $token")
+                            homeViewModel.fetchUserReservations(token) // Asegúrate de que 'token' es realmente el 'userId'
+                        } else {
+                            Log.e("HomeScreen", "Token está vacío, no se llamará a fetchUserReservations")
                         }
                     }
                 },
+
                 onCloseMenu = {
                     coroutineScope.launch {
                         drawerState.close() // Cierra el menú cuando se llama a onCloseMenu

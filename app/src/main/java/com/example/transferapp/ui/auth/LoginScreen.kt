@@ -17,14 +17,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.lint.kotlin.metadata.Visibility
 import androidx.navigation.NavController
 import com.example.transferapp.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import com.example.transferapp.ui.Screen
-
 
 @Composable
 fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
@@ -113,8 +111,10 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
         // Estado del inicio de sesión
         when {
             loginState == "Login Successful" -> {
-                navController.navigate(Screen.Home.route) {
-                    popUpTo(Screen.Login.route) { inclusive = true } // Evitar regresar al login
+                LaunchedEffect(Unit) {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true } // Evitar regresar al login
+                    }
                 }
             }
             loginState?.startsWith("Error") == true -> {

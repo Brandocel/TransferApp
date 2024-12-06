@@ -9,6 +9,8 @@ import com.example.transferapp.ui.home.components.Reservation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import android.util.Log
+
 
 class HomeViewModel(private val homeRepository: HomeRepository) : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
@@ -29,47 +31,62 @@ class HomeViewModel(private val homeRepository: HomeRepository) : ViewModel() {
     fun fetchUserReservations(userId: String) {
         viewModelScope.launch {
             _isLoadingReservations.value = true
+            Log.d("HomeViewModel", "Iniciando fetchUserReservations para userId: $userId")
             try {
                 val response = homeRepository.getUserReservations(userId)
+                Log.d("HomeViewModel", "Respuesta de getUserReservations: $response")
                 if (response.success) {
-                    // Usa el operador `?.` para manejar el caso en que `response.data` sea nulo
-                    _reservations.value = response.data?.filter { it.status == "paid" } ?: emptyList()
+                    val filteredReservations = response.data?.filter { it.status == "paid" } ?: emptyList()
+                    Log.d("HomeViewModel", "Reservas filtradas: $filteredReservations")
+                    _reservations.value = filteredReservations
                 } else {
-                    _reservations.value = emptyList() // En caso de fallo en la respuesta
+                    Log.e("HomeViewModel", "La respuesta no fue exitosa: ${response.message}")
+                    _reservations.value = emptyList()
                 }
             } catch (e: Exception) {
-                _reservations.value = emptyList() // En caso de error, limpiar las reservas
+                Log.e("HomeViewModel", "Error al obtener reservas: ${e.message}", e)
+                _reservations.value = emptyList()
             } finally {
                 _isLoadingReservations.value = false
+                Log.d("HomeViewModel", "Finalizando fetchUserReservations")
             }
         }
     }
+
 
 
 
     fun fetchHomeData() {
         viewModelScope.launch {
             _isLoading.value = true
+            Log.d("HomeViewModel", "Iniciando fetchHomeData")
             try {
                 val response = homeRepository.fetchAllInfo()
+                Log.d("HomeViewModel", "Respuesta de fetchAllInfo: $response")
                 _homeData.value = response.data
             } catch (e: Exception) {
-                // Manejo de errores
+                Log.e("HomeViewModel", "Error al obtener datos de inicio: ${e.message}", e)
             } finally {
                 _isLoading.value = false
+                Log.d("HomeViewModel", "Finalizando fetchHomeData")
             }
         }
     }
-    fun fetchUnitAvailability(unitId: String, pickupTime: String, reservationDate: String, hotelId:String) {
+
+    fun fetchUnitAvailability(unitId: String, pickupTime: String, reservationDate: String, hotelId: String) {
         viewModelScope.launch {
+            _isLoading.value = true
+            Log.d("HomeViewModel", "Iniciando fetchUnitAvailability para unitId: $unitId, pickupTime: $pickupTime, reservationDate: $reservationDate, hotelId: $hotelId")
             try {
-                _isLoading.value = true
                 val response = homeRepository.getUnitAvailability(unitId, pickupTime, reservationDate, hotelId)
+                Log.d("HomeViewModel", "Respuesta de getUnitAvailability: $response")
                 _availabilityData.value = response
             } catch (e: Exception) {
+                Log.e("HomeViewModel", "Error al obtener disponibilidad de unidad: ${e.message}", e)
                 _availabilityData.value = null
             } finally {
                 _isLoading.value = false
+                Log.d("HomeViewModel", "Finalizando fetchUnitAvailability")
             }
         }
     }
