@@ -2,6 +2,7 @@ package com.example.transferapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.transferapp.data.model.Agency
 import com.example.transferapp.data.model.AvailabilityResponse
 import com.example.transferapp.data.model.HomeData
 import com.example.transferapp.repository.HomeRepository
@@ -11,13 +12,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import android.util.Log
 
-
 class HomeViewModel(private val homeRepository: HomeRepository) : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
     private val _homeData = MutableStateFlow<HomeData?>(null)
     val homeData: StateFlow<HomeData?> = _homeData
+
+    // Agencia
+    private val _userAgency = MutableStateFlow<Agency?>(null)
+    val userAgency: StateFlow<Agency?> = _userAgency
 
     private val _availabilityData = MutableStateFlow<AvailabilityResponse?>(null)
     val availabilityData: StateFlow<AvailabilityResponse?> = _availabilityData
@@ -53,9 +57,6 @@ class HomeViewModel(private val homeRepository: HomeRepository) : ViewModel() {
         }
     }
 
-
-
-
     fun fetchHomeData() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -72,6 +73,22 @@ class HomeViewModel(private val homeRepository: HomeRepository) : ViewModel() {
             }
         }
     }
+
+    // Función para obtener la agencia del usuario
+    fun fetchUserAgency(userId: String) {
+        viewModelScope.launch {
+            Log.d("HomeViewModel", "fetchUserAgency llamado con userId=$userId")
+            val agency = homeRepository.getUserAgency(userId)
+            if (agency != null) {
+                Log.d("HomeViewModel", "Agencia obtenida: ${agency.name}")
+                _userAgency.value = agency
+            } else {
+                Log.e("HomeViewModel", "No se pudo obtener la agencia.")
+            }
+        }
+    }
+
+
 
     fun fetchUnitAvailability(unitId: String, pickupTime: String, reservationDate: String, hotelId: String) {
         viewModelScope.launch {
@@ -90,10 +107,7 @@ class HomeViewModel(private val homeRepository: HomeRepository) : ViewModel() {
             }
         }
     }
-
 }
-
-
 
 class HomeViewModelFactory(private val homeRepository: HomeRepository) :
     androidx.lifecycle.ViewModelProvider.Factory {

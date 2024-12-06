@@ -17,15 +17,16 @@ import com.example.transferapp.data.model.Unit as ModelUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, token: String) {
-    val drawerState = rememberDrawerState(DrawerValue.Closed) // Estado inicial cerrado
+fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, userId: String) {
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
 
     val isLoading by homeViewModel.isLoading.collectAsState()
     val homeData by homeViewModel.homeData.collectAsState(initial = null)
     val availabilityData by homeViewModel.availabilityData.collectAsState(initial = null)
+    val userAgency by homeViewModel.userAgency.collectAsState()
 
-    // Estados para campos
+    // Estados para filtros
     var selectedZone by remember { mutableStateOf<Zone?>(null) }
     var selectedStore by remember { mutableStateOf<Store?>(null) }
     var selectedAgency by remember { mutableStateOf<Agency?>(null) }
@@ -33,6 +34,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, token
     var selectedPickup by remember { mutableStateOf<Pickup?>(null) }
     var selectedUnit by remember { mutableStateOf<ModelUnit?>(null) }
 
+    // Otros estados
     var pax by remember { mutableStateOf("") }
     var adults by remember { mutableStateOf("") }
     var children by remember { mutableStateOf("") }
@@ -43,14 +45,25 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, token
     var clientNameEnabled by remember { mutableStateOf(false) }
     var showAvailability by remember { mutableStateOf(false) }
 
-
-
     LaunchedEffect(Unit) {
+        // Obtenemos la data inicial
         homeViewModel.fetchHomeData()
+
+        // Obtenemos la agencia del usuario solo si userId no está vacío
+        if (userId.isNotEmpty()) {
+            Log.d("HomeScreen", "Llamando a fetchUserAgency con userId=$userId")
+            homeViewModel.fetchUserAgency(userId)
+        } else {
+            Log.e("HomeScreen", "userId está vacío, no se llamará a fetchUserAgency")
+        }
     }
 
+    // Cuando obtengas userAgency, si selectedAgency todavía es null, asígnala solo una vez.
+    if (userAgency != null && selectedAgency == null) {
+        Log.d("HomeScreen", "Agencia del usuario cargada por primera vez: ${    userAgency!!.name}")
+        selectedAgency = userAgency
+    }
 
-    // Drawer con contenido condicional
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -59,18 +72,17 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, token
                 reservations = homeViewModel.reservations.collectAsState().value,
                 onFetchReservations = {
                     coroutineScope.launch {
-                        if (token.isNotEmpty()) {
-                            Log.d("HomeScreen", "Token no está vacío, llamando a fetchUserReservations con token: $token")
-                            homeViewModel.fetchUserReservations(token) // Asegúrate de que 'token' es realmente el 'userId'
+                        if (userId.isNotEmpty()) {
+                            Log.d("HomeScreen", "Obteniendo reservas del usuario con userId=$userId")
+                            homeViewModel.fetchUserReservations(userId)
                         } else {
-                            Log.e("HomeScreen", "Token está vacío, no se llamará a fetchUserReservations")
+                            Log.e("HomeScreen", "userId está vacío, no se obtendrán reservas")
                         }
                     }
                 },
-
                 onCloseMenu = {
                     coroutineScope.launch {
-                        drawerState.close() // Cierra el menú cuando se llama a onCloseMenu
+                        drawerState.close()
                     }
                 }
             )
@@ -79,7 +91,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, token
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Majestic Expedidition") },
+                    title = { Text("Majestic Expedition") },
                     navigationIcon = {
                         IconButton(onClick = { coroutineScope.launch { drawerState.open() } }) {
                             Icon(Icons.Default.Menu, contentDescription = "Abrir menú")
@@ -100,20 +112,25 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, token
                         availabilityData = availabilityData,
                         paddingValues = paddingValues,
                         fetchAvailability = { unitId, pickupTime, reservationDate, hotelId ->
-                            homeViewModel.fetchUnitAvailability(
-                                unitId,
-                                pickupTime,
-                                reservationDate,
-                                hotelId
-                            )
+                            homeViewModel.fetchUnitAvailability(unitId, pickupTime, reservationDate, hotelId)
                             showAvailability = true
                         },
                         selectedZone = selectedZone,
-                        onZoneSelected = { selectedZone = it },
+                        onZoneSelected = { newZone ->
+                            selectedZone = newZone
+                            selectedStore = null
+                            // IMPORTANTE: Ya no ponemos onAgencySelected(null) aquí
+                            selectedHotel = null
+                            selectedPickup = null
+                            selectedUnit = null
+                        },
                         selectedStore = selectedStore,
                         onStoreSelected = { selectedStore = it },
                         selectedAgency = selectedAgency,
-                        onAgencySelected = { selectedAgency = it },
+                        onAgencySelected = {
+                            // Si no quieres que se cambie una vez obtenida, no hagas nada aquí.
+                            // selectedAgency = it
+                        },
                         selectedHotel = selectedHotel,
                         onHotelSelected = { selectedHotel = it },
                         selectedPickup = selectedPickup,
@@ -145,4 +162,6 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, token
         }
     }
 }
+
+
 

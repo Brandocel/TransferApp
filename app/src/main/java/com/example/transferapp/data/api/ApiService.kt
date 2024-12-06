@@ -58,6 +58,7 @@ interface ApiService {
     suspend fun getUserInfoById(@Path("id") id: String): ApiGenericResponse<UserInfo>
 
 
+
     companion object {
         private const val BASE_URL = "https://0312-187-150-214-35.ngrok-free.app/"
 
@@ -92,7 +93,9 @@ data class UserInfo(
     val id: String,
     val name: String,
     val email: String,
-    val roleId: String
+    val roleId: String,
+    val agencyId: String,       // Nuevo campo
+    val agencyName: String      // Nuevo campo
 )
 
 data class AgencyInfo(

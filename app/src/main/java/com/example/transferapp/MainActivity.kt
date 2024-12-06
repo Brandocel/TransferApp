@@ -3,6 +3,7 @@ package com.example.transferapp
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -29,6 +30,7 @@ import com.example.transferapp.viewmodel.SeatSelectionViewModelFactory
 import extractUserId
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.first
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,18 +45,25 @@ class MainActivity : ComponentActivity() {
             val sessionManager = SessionManager(context)
             val seatSelectionRepository = SeatSelectionRepository(apiService)
 
+            // Crear la factory para AuthViewModel
+            val authViewModelFactory = AuthViewModelFactory(authRepository, sessionManager)
             val authViewModel: AuthViewModel = viewModel(
-                factory = AuthViewModelFactory(authRepository, sessionManager)
-            )
-            val homeViewModel: HomeViewModel = viewModel(
-                factory = HomeViewModelFactory(homeRepository)
+                factory = authViewModelFactory
             )
 
+            // Crear la factory para HomeViewModel pasando solo homeRepository
+            val homeViewModelFactory = HomeViewModelFactory(homeRepository)
+            val homeViewModel: HomeViewModel = viewModel(
+                factory = homeViewModelFactory
+            )
+
+            // Crear la factory para SeatSelectionViewModel
+            val seatSelectionViewModelFactory = SeatSelectionViewModelFactory(
+                repository = seatSelectionRepository,
+                apiService = apiService
+            )
             val seatSelectionViewModel: SeatSelectionViewModel = viewModel(
-                factory = SeatSelectionViewModelFactory(
-                    repository = seatSelectionRepository,
-                    apiService = apiService
-                )
+                factory = seatSelectionViewModelFactory
             )
 
             // Obtener el userId del token de sesión
