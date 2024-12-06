@@ -42,7 +42,7 @@ interface ApiService {
         @Query("hotelId") hotelId: String
     ): SeatStatusResponse
 
-    @POST("api/Reservation/add-multiple-reservations")
+    @POST("api/Reservation/add-reservation")
     suspend fun addMultipleReservations(
         @Body request: MultipleReservationsRequest
     ): ReservationResponse
