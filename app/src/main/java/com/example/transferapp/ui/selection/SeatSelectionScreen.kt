@@ -222,8 +222,8 @@ fun SeatSelectionScreen(
                     // Asientos
                     SeatGrid(
                         totalSeats = data.totalSeats,
-                        occupiedSeats = data.paid,
-                        pendingSeats = data.pending,
+                        occupiedSeats = data.paid ?: emptyList(),
+                        pendingSeats = data.pending ?: emptyList(),
                         selectedSeats = selectedSeats,
                         maxSelectableSeats = maxSelectableSeats
                     )
@@ -391,8 +391,8 @@ fun SeatSelectionScreen(
 @Composable
 fun SeatGrid(
     totalSeats: Int,
-    occupiedSeats: List<Int>,
-    pendingSeats: List<Int>,
+    occupiedSeats: List<Int>?, // Permitir nulos
+    pendingSeats: List<Int>?, // Permitir nulos
     selectedSeats: MutableList<Int>,
     maxSelectableSeats: Int
 ) {
@@ -415,8 +415,8 @@ fun SeatGrid(
                         SeatButton(
                             seatLabel = seatLabel,
                             seatNumber = seatNumber,
-                            isOccupied = seatNumber in occupiedSeats,
-                            isPending = seatNumber in pendingSeats,
+                            isOccupied = occupiedSeats?.contains(seatNumber) == true, // Manejo seguro
+                            isPending = pendingSeats?.contains(seatNumber) == true, // Manejo seguro
                             isSelected = seatNumber in selectedSeats,
                             onSeatSelected = { selected ->
                                 if (selected) {
@@ -437,6 +437,7 @@ fun SeatGrid(
         }
     }
 }
+
 
 
 @Composable
