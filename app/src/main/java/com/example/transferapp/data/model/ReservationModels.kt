@@ -30,7 +30,7 @@ data class ReservationRequest(
 data class ReservationResponse(
     @SerializedName("success") val success: Boolean,
     @SerializedName("message") val message: String,
-    @SerializedName("data") val data: JsonElement // Asegúrate de que sea un JsonElement
+    @SerializedName("data") val data: String // "F-103"
 )
 
 

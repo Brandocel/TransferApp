@@ -1,7 +1,11 @@
+// Archivo: com/example/transferapp/repository/SeatSelectionRepository.kt
+
 package com.example.transferapp.repository
 
 import android.util.Log
 import com.example.transferapp.data.api.ApiService
+import com.example.transferapp.data.model.MultipleReservationsRequest
+import com.example.transferapp.data.model.ReservationResponse
 import com.example.transferapp.data.model.SeatStatusResponse
 import retrofit2.HttpException
 
@@ -21,13 +25,19 @@ class SeatSelectionRepository(private val apiService: ApiService) {
         return apiService.getSeatStatus(unitId, pickupTime, reservationDate, hotelId)
     }
 
+    // Agregar múltiples reservaciones
+    suspend fun addMultipleReservations(request: MultipleReservationsRequest): ReservationResponse {
+        Log.d("Repository", "Adding multiple reservations with request: $request")
+        return apiService.addMultipleReservations(request)
+    }
+
     suspend fun getAgencyNameById(agencyId: String): String {
         Log.d("Repository", "Fetching agency name for ID: $agencyId")
         return try {
             val response = apiService.getAgencyInfoById(agencyId)
-            val agencyName = response.data?.name // Asegúrate de acceder al campo `data`
+            val agencyName = response.data.name // Asegúrate de acceder al campo `data`
             Log.d("Repository", "Agency name retrieved: $agencyName")
-            agencyName ?: "Nombre no encontrado"
+            agencyName
         } catch (e: Exception) {
             Log.e("Repository", "Error al obtener el nombre de la agencia", e)
             "Error al obtener nombre"
@@ -38,13 +48,12 @@ class SeatSelectionRepository(private val apiService: ApiService) {
         Log.d("Repository", "Fetching user name for ID: $userId")
         return try {
             val response = apiService.getUserInfoById(userId)
-            val userName = response.data?.name // Asegúrate de acceder al campo `data`
+            val userName = response.data.name // Asegúrate de acceder al campo `data`
             Log.d("Repository", "User name retrieved: $userName")
-            userName ?: "Nombre no encontrado"
+            userName
         } catch (e: Exception) {
             Log.e("Repository", "Error al obtener el nombre del usuario", e)
             "Error al obtener nombre"
         }
     }
 }
-

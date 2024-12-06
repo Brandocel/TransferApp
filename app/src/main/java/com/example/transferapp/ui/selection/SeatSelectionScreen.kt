@@ -68,6 +68,8 @@ fun SeatSelectionScreen(
     Log.d("SeatSelectionScreen", "AgencyName en Composable: ${agencyName ?: "Cargando..."}")
     Log.d("SeatSelectionScreen", "UserName en Composable: ${userName ?: "Cargando..."}")
 
+    val coroutineScope = rememberCoroutineScope()
+
     val maxSelectableSeats = adult + child
     val selectedSeats = remember { mutableStateListOf<Int>() }
     var showDialog by remember { mutableStateOf(false) }
@@ -139,31 +141,7 @@ fun SeatSelectionScreen(
             reservationResponse!!.data?.let { jsonData ->
                 Log.d("SeatSelectionScreen", "Reservation was successful. Data: $jsonData")
 
-                try {
-                    // Parsear el JSON como una lista explícita
-                    val reservations: List<ReservationResponseItem> = gson.fromJson(
-                        jsonData.toString(),
-                        object : TypeToken<List<ReservationResponseItem>>() {}.type
-                    )
 
-                    // Verifica si la lista no está vacía
-                    if (reservations.isNotEmpty()) {
-                        reservationData = reservations.first()
-                        Log.d("SeatSelectionScreen", "Parsed reservation data: $reservationData")
-
-                        // Muestra el ticket solo si `showDialog` es true
-                        if (showDialog) {
-                            showTicket = true
-                            Log.d("SeatSelectionScreen", "Ticket is being displayed.")
-                        } else {
-                            Log.d("SeatSelectionScreen", "Ticket is not displayed because showDialog is false.")
-                        }
-                    } else {
-                        Log.e("SeatSelectionScreen", "Reservations list is empty.")
-                    }
-                } catch (e: Exception) {
-                    Log.e("SeatSelectionScreen", "Error parsing reservation data", e)
-                }
             } ?: run {
                 Log.e("SeatSelectionScreen", "Reservation data is null.")
             }
@@ -329,32 +307,45 @@ fun SeatSelectionScreen(
         Log.d("SeatSelectionScreen", "Reservation response changed: $reservationResponse")
 
         if (reservationResponse?.success == true) {
-            reservationResponse!!.data?.let { jsonData ->
-                Log.d("SeatSelectionScreen", "Reservation was successful. Data: $jsonData")
+            reservationResponse!!.data?.let { folio ->
+                Log.d("SeatSelectionScreen", "Reservation was successful. Folio: $folio")
 
-                try {
-                    val reservations: List<ReservationResponseItem> = gson.fromJson(
-                        jsonData.toString(),
-                        object : TypeToken<List<ReservationResponseItem>>() {}.type
-                    )
+                reservationData = ReservationResponseItem(
+                    id = folio,
+                    userId = userId,
+                    zoneId = zoneId,
+                    agencyId = agencyId,
+                    hotelId = hotelId,
+                    unitId = unitId,
+                    seatNumber = selectedSeats.toList(),
+                    pickupTime = pickupTime,
+                    reservationDate = reservationDate,
+                    clientName = client,
+                    observations = "Sin observaciones",
+                    storeId = storeId,
+                    pax = maxSelectableSeats,
+                    adults = adult,
+                    children = child,
+                    status = "",
+                    folio = folio
+                )
 
-                    if (reservations.isNotEmpty()) {
-                        reservationData = reservations.first()
-                        showTicket = true
-                    } else {
-                        Log.e("SeatSelectionScreen", "Reservations list is empty.")
-                    }
-                } catch (e: Exception) {
-                    Log.e("SeatSelectionScreen", "Error parsing reservation data", e)
-                }
+                showTicket = true
+                Log.d("SeatSelectionScreen", "Ticket is being displayed with folio: $folio")
+            } ?: run {
+                Log.e("SeatSelectionScreen", "Reservation data is null.")
             }
-        } else {
+        } else if (reservationResponse != null) {
             Log.d("SeatSelectionScreen", "Reservation failed. Message: ${reservationResponse?.message}")
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar("Error en la reserva: ${reservationResponse?.message}")
+            }
         }
 
         // Siempre cierra el diálogo después de procesar la reserva
         showDialog = false
     }
+
 
 // Reiniciar estados al entrar en la pantalla
     LaunchedEffect(Unit) {
