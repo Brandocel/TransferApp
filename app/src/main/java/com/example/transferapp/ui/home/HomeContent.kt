@@ -1,5 +1,6 @@
 package com.example.transferapp.ui.home
 
+import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.verticalScroll
@@ -8,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
@@ -19,6 +21,8 @@ import com.example.transferapp.ui.home.components.FilterDropdown
 import com.example.transferapp.ui.home.components.OutlinedTextFieldPax
 import com.example.transferapp.ui.home.components.AvailabilityCard
 import com.example.transferapp.ui.home.components.DatePickerBox
+import com.example.transferapp.viewmodel.HomeViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -55,12 +59,17 @@ fun HomeContent(
     clientNameEnabled: Boolean,
     onClientNameEnabledChange: (Boolean) -> Unit,
     showAvailability: Boolean,
-    reservationFolio: String
+    reservationFolio: String,
+    homeViewModel: HomeViewModel,
+    userId: String
 ) {
     // Logs para debug
     Log.d("HomeContent", "Agencias disponibles: ${homeData.agencies.joinToString { it.name }}")
     Log.d("HomeContent", "Agencia seleccionada: ${selectedAgency?.name ?: "Ninguna"}")
 
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var isLoading by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .padding(paddingValues)
@@ -323,13 +332,56 @@ fun HomeContent(
                 if (data.availableSeats > 0) {
                     Button(
                         onClick = {
-                            Log.d("HomeContent", "Botón Reservar presionado")
-                            if (clientName.isNotEmpty() && selectedUnit != null && selectedPickup != null && selectedDate.isNotEmpty() && selectedHotel != null && selectedAgency != null) {
-                                Log.d("HomeContent", "Navegando a SeatSelection con la siguiente información: " +
-                                        "unitId=${selectedUnit!!.id}, pickupTime=${selectedPickup!!.pickupTime}, " +
-                                        "reservationDate=$selectedDate, hotelId=${selectedHotel!!.id}, agencyId=${selectedAgency!!.id}, " +
-                                        "client=$clientName, adult=${adults.toInt()}, child=${children.toInt()}, " +
-                                        "zoneId=${selectedZone!!.id}, storeId=${selectedStore!!.id}")
+                            if (reservationFolio.isEmpty()) {
+                                val request = RegisterReservationRequest(
+                                    userId = userId,
+                                    zoneId = selectedZone?.id.orEmpty(),
+                                    agencyId = selectedAgency?.id.orEmpty(),
+                                    hotelId = selectedHotel?.id.orEmpty(),
+                                    unitId = selectedUnit?.id.orEmpty(),
+                                    pickupTime = selectedPickup?.pickupTime.orEmpty(),
+                                    reservationDate = selectedDate,
+                                    clientName = clientName,
+                                    storeId = selectedStore?.id.orEmpty(),
+                                    pax = pax.toIntOrNull() ?: 0,
+                                    adults = adults.toIntOrNull() ?: 0,
+                                    children = children.toIntOrNull() ?: 0,
+                                    status = "pending"
+                                )
+
+                                isLoading = true
+
+                                scope.launch {
+                                    homeViewModel.registerReservation(
+                                        request = request,
+                                        onSuccess = { folio ->
+                                            isLoading = false
+                                            navController.navigate(
+                                                Screen.SeatSelection.createRoute(
+                                                    unitId = selectedUnit!!.id,
+                                                    pickupTime = selectedPickup!!.pickupTime,
+                                                    reservationDate = selectedDate,
+                                                    hotelId = selectedHotel!!.id,
+                                                    agencyId = selectedAgency!!.id,
+                                                    client = clientName,
+                                                    adult = adults.toInt(),
+                                                    child = children.toInt(),
+                                                    zoneId = selectedZone!!.id,
+                                                    storeId = selectedStore!!.id,
+                                                    folio = folio
+                                                )
+                                            )
+                                            Toast.makeText(context, "Reserva registrada con éxito. Folio: $folio", Toast.LENGTH_LONG).show()
+                                        },
+                                        onError = { errorMessage ->
+                                            isLoading = false
+                                            Toast.makeText(context, "Error al registrar reserva: $errorMessage", Toast.LENGTH_LONG).show()
+                                        }
+                                    )
+                                }
+                            }
+                            else {
+                                // Si ya existe un folio, navegar directamente
                                 navController.navigate(
                                     Screen.SeatSelection.createRoute(
                                         unitId = selectedUnit!!.id,
@@ -345,16 +397,20 @@ fun HomeContent(
                                         folio = reservationFolio
                                     )
                                 )
-                            } else {
-                                Log.e("Navigation", "Error: argumentos nulos o vacíos")
                             }
-
                         },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp)
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Reservar")
+                    }
+
+                    if (isLoading) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
                     }
                 }
             } ?: run {

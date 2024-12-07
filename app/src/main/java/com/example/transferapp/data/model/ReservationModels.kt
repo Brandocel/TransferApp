@@ -21,6 +21,31 @@ data class MultipleReservationsRequest(
     @SerializedName("status") val status: String, // Estado de la reservación
     @SerializedName("folio") val folio: String = "", // Folio generado o predeterminado
 )
+
+data class RegisterReservationRequest(
+    @SerializedName("userId") val userId: String,
+    @SerializedName("zoneId") val zoneId: String,
+    @SerializedName("agencyId") val agencyId: String,
+    @SerializedName("hotelId") val hotelId: String,
+    @SerializedName("unitId") val unitId: String,
+    @SerializedName("pickupTime") val pickupTime: String,
+    @SerializedName("reservationDate") val reservationDate: String,
+    @SerializedName("clientName") val clientName: String,
+    @SerializedName("storeId") val storeId: String,
+    @SerializedName("pax") val pax: Int,
+    @SerializedName("adults") val adults: Int,
+    @SerializedName("children") val children: Int,
+    @SerializedName("status") val status: String
+)
+
+data class RegisterReservationResponse(
+    val success: Boolean,
+    val message: String,
+    val data: String // El folio
+)
+
+
+
 data class ReservationRequest(
     val id: String, // Campo único
     val seatNumber: Int,

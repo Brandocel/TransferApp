@@ -50,10 +50,19 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, userI
     var showAvailability by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
+        if (userId.isNotEmpty()) {
+            Log.d("HomeScreen", "Llamando a fetchUserAgency con userId=$userId")
+            homeViewModel.fetchUserAgency(userId)
+        } else {
+            Log.e("HomeScreen", "userId está vacío, no se llamará a fetchUserAgency")
+        }
         // Inicializamos la data
         homeViewModel.initializeData(userId)
     }
 
+    if (userAgency != null && selectedAgency == null) {
+        Log.d("HomeScreen", "Agencia del usuario cargada por primera vez: ${    userAgency!!.name}")
+        selectedAgency = userAgency}
     // Llenar campos del formulario si hay reservas pendientes
     LaunchedEffect(pendingReservations, homeData) {
         if (pendingReservations != null && homeData != null) {
@@ -158,7 +167,9 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, userI
                         clientNameEnabled = clientNameEnabled,
                         onClientNameEnabledChange = { clientNameEnabled = it },
                         showAvailability = showAvailability,
-                        reservationFolio = reservationFolio
+                        reservationFolio = reservationFolio,
+                        homeViewModel = homeViewModel,
+                        userId = userId
                     )
                 } ?: run {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

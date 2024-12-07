@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import android.util.Log
 import com.example.transferapp.data.model.PendingReservation
+import com.example.transferapp.data.model.RegisterReservationRequest
 
 class HomeViewModel(private val homeRepository: HomeRepository) : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
@@ -35,6 +36,27 @@ class HomeViewModel(private val homeRepository: HomeRepository) : ViewModel() {
 
     private val _pendingReservations = MutableStateFlow<List<PendingReservation>?>(null)
     val pendingReservations: StateFlow<List<PendingReservation>?> = _pendingReservations
+
+    fun registerReservation(
+        request: RegisterReservationRequest,
+        onSuccess: (String) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val response = homeRepository.registerReservation(request)
+                if (response.success && response.data != null) {
+                    onSuccess(response.data) // Aquí enviamos el folio directamente
+                } else {
+                    onError(response.message)
+                }
+            } catch (e: Exception) {
+                onError(e.message ?: "Error desconocido")
+            }
+        }
+    }
+
+
 
     fun fetchPendingReservations(userId: String) {
         viewModelScope.launch {

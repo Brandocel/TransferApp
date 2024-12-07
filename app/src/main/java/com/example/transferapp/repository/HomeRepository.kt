@@ -20,6 +20,13 @@ class HomeRepository(private val apiService: ApiService) {
         return apiService.getAllInfo()
     }
 
+    //generar cupon por primera vez
+    suspend fun registerReservation(request: RegisterReservationRequest): ApiResponse<String> {
+        return apiService.registerReservation(request)
+    }
+
+
+
     // Obtener la disponibilidad de una unidad específica
     suspend fun getUnitAvailability(
         unitId: String,

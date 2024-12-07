@@ -5,6 +5,7 @@ import com.example.transferapp.data.model.AvailabilityResponse
 import com.example.transferapp.data.model.HomeResponse
 import com.example.transferapp.data.model.MultipleReservationsRequest
 import com.example.transferapp.data.model.PendingReservation
+import com.example.transferapp.data.model.RegisterReservationRequest
 import com.example.transferapp.data.model.ReservationResponse
 import com.example.transferapp.data.model.SeatStatusResponse
 import com.example.transferapp.ui.home.components.Reservation
@@ -34,6 +35,13 @@ interface ApiService {
         @Query("reservationDate") reservationDate: String,
         @Query("hotelId") hotelId: String
     ): AvailabilityResponse
+
+    @POST("api/Reservation/register-reservation")
+    suspend fun registerReservation(
+        @Body request: RegisterReservationRequest
+    ): ApiResponse<String>
+
+
 
     @GET("api/Reservation/pending-reservations/{userId}")
     suspend fun getPendingReservations(
