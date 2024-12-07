@@ -81,7 +81,7 @@ interface ApiService {
 
 
     companion object {
-        private const val BASE_URL = "https://f66c-2806-10be-a-833e-c5f-22cc-4140-6fdc.ngrok-free.app "
+        private const val BASE_URL = "https://2a76-187-150-214-35.ngrok-free.app/"
 
         //Local
        // private const val BASE_URL = "https://localhost:7130/"

@@ -36,14 +36,14 @@ fun HomeContent(
     onZoneSelected: (Zone?) -> Unit,
     selectedStore: Store?,
     onStoreSelected: (Store?) -> Unit,
-    selectedAgency: Agency?,
+    selectedAgency: Agency?, // La agencia se obtiene del userAgency y no debe ser editable
     onAgencySelected: (Agency?) -> Unit,
     selectedHotel: Hotel?,
     onHotelSelected: (Hotel?) -> Unit,
     selectedPickup: Pickup?,
     onPickupSelected: (Pickup?) -> Unit,
     selectedUnit: ModelUnit?,
-    onUnitSelected: (ModelUnit?) -> Unit, // Aquí usamos ModelUnit en vez de Unit del data model
+    onUnitSelected: (ModelUnit?) -> Unit,
     pax: String,
     onPaxChange: (String) -> Unit,
     adults: String,
@@ -63,13 +63,13 @@ fun HomeContent(
     homeViewModel: HomeViewModel,
     userId: String
 ) {
-    // Logs para debug
     Log.d("HomeContent", "Agencias disponibles: ${homeData.agencies.joinToString { it.name }}")
     Log.d("HomeContent", "Agencia seleccionada: ${selectedAgency?.name ?: "Ninguna"}")
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .padding(paddingValues)
@@ -84,6 +84,7 @@ fun HomeContent(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
         }
+
         // Selector de Zonas
         Log.d("HomeContent", "Zonas disponibles: ${homeData.zones.joinToString { it.name }}")
         FilterDropdown(
@@ -95,10 +96,10 @@ fun HomeContent(
                 Log.d("HomeContent", "Zona seleccionada: ${zone?.name ?: "Ninguna"}")
                 onZoneSelected(zone)
                 onStoreSelected(null)
-                onAgencySelected(null)
                 onHotelSelected(null)
                 onPickupSelected(null)
                 onUnitSelected(null)
+                // La agencia no se modifica aquí, se mantiene la obtenida del userAgency o la del pending
             }
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -121,28 +122,25 @@ fun HomeContent(
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Selector de Agencias - Solo la agencia del usuario
-        selectedAgency?.let { agency ->
-            Log.d("HomeContent", "Mostrando agencia del usuario: ${agency.name}")
-            FilterDropdown(
-                label = "Selecciona una Agencia",
-                options = listOf(agency.name),
-                selectedOption = agency.name,
-                onOptionSelected = {
-                    // No permitir selección, ya está preseleccionada
-                    Log.d("HomeContent", "Intento de cambiar agencia, se ignora porque está deshabilitado.")
-                },
-                enabled = false
+        // Mostrar la agencia del usuario sin permitir cambios
+        if (selectedAgency != null) {
+            // Mostramos la agencia en un campo deshabilitado
+            OutlinedTextFieldPax(
+                value = selectedAgency.name,
+                onValueChange = {},
+                label = "Agencia (Obtenida del usuario)",
+                enabled = false,
+                readOnly = true,
+                modifier = Modifier.fillMaxWidth()
             )
-        } ?: run {
-            // Mostrar un mensaje o indicador de carga si la agencia no está disponible
-            Log.d("HomeContent", "Agencia del usuario aún no disponible, mostrando mensaje de carga...")
+        } else {
             Text(
                 text = "Cargando agencia del usuario...",
                 modifier = Modifier.padding(8.dp),
                 color = MaterialTheme.colorScheme.primary
             )
         }
+
         Spacer(modifier = Modifier.height(16.dp))
 
         // Selector de Hoteles
@@ -228,7 +226,6 @@ fun HomeContent(
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Input de Pax
         Log.d("HomeContent", "Pax: $pax, Adults: $adults, Children: $children, ClientName: $clientName")
         OutlinedTextFieldPax(
             value = pax,
@@ -295,20 +292,29 @@ fun HomeContent(
         )
         Spacer(modifier = Modifier.height(32.dp))
 
+        val seatCount = selectedUnit?.seatCount ?: 0
+        val paxValue = pax.toIntOrNull() ?: 0
+
         // Botón para Buscar Disponibilidad
         Button(
             onClick = {
                 Log.d("HomeContent", "Botón Buscar Disponibilidad presionado")
-                if (selectedUnit != null && selectedPickup != null && selectedDate.isNotEmpty()) {
-                    Log.d("HomeContent", "Parametros para fetchAvailability: unitId=${selectedUnit!!.id}, pickupTime=${selectedPickup!!.pickupTime}, reservationDate=$selectedDate, hotelId=${selectedHotel?.id ?: ""}")
-                    fetchAvailability(
-                        selectedUnit!!.id,
-                        selectedPickup!!.pickupTime,
-                        selectedDate,
-                        selectedHotel!!.id
-                    )
+
+                // Validación: si la unidad seleccionada no soporta el número de pax
+                if (paxValue > seatCount && seatCount > 0) {
+                    Toast.makeText(context, "La unidad seleccionada no soporta $paxValue pasajeros (máx $seatCount).", Toast.LENGTH_LONG).show()
                 } else {
-                    Log.d("HomeContent", "No se cumplen las condiciones para fetchAvailability")
+                    if (selectedUnit != null && selectedPickup != null && selectedDate.isNotEmpty()) {
+                        Log.d("HomeContent", "Parametros para fetchAvailability: unitId=${selectedUnit!!.id}, pickupTime=${selectedPickup!!.pickupTime}, reservationDate=$selectedDate, hotelId=${selectedHotel?.id ?: ""}")
+                        fetchAvailability(
+                            selectedUnit!!.id,
+                            selectedPickup!!.pickupTime,
+                            selectedDate,
+                            selectedHotel!!.id
+                        )
+                    } else {
+                        Log.d("HomeContent", "No se cumplen las condiciones para fetchAvailability")
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -332,71 +338,74 @@ fun HomeContent(
                 if (data.availableSeats > 0) {
                     Button(
                         onClick = {
-                            if (reservationFolio.isEmpty()) {
-                                val request = RegisterReservationRequest(
-                                    userId = userId,
-                                    zoneId = selectedZone?.id.orEmpty(),
-                                    agencyId = selectedAgency?.id.orEmpty(),
-                                    hotelId = selectedHotel?.id.orEmpty(),
-                                    unitId = selectedUnit?.id.orEmpty(),
-                                    pickupTime = selectedPickup?.pickupTime.orEmpty(),
-                                    reservationDate = selectedDate,
-                                    clientName = clientName,
-                                    storeId = selectedStore?.id.orEmpty(),
-                                    pax = pax.toIntOrNull() ?: 0,
-                                    adults = adults.toIntOrNull() ?: 0,
-                                    children = children.toIntOrNull() ?: 0,
-                                    status = "pending"
-                                )
+                            if (paxValue > seatCount && seatCount > 0) {
+                                Toast.makeText(context, "La unidad seleccionada no soporta $paxValue pasajeros (máx $seatCount).", Toast.LENGTH_LONG).show()
+                            } else {
+                                if (reservationFolio.isEmpty()) {
+                                    val request = RegisterReservationRequest(
+                                        userId = userId,
+                                        zoneId = selectedZone?.id.orEmpty(),
+                                        agencyId = selectedAgency?.id.orEmpty(),
+                                        hotelId = selectedHotel?.id.orEmpty(),
+                                        unitId = selectedUnit?.id.orEmpty(),
+                                        pickupTime = selectedPickup?.pickupTime.orEmpty(),
+                                        reservationDate = selectedDate,
+                                        clientName = clientName,
+                                        storeId = selectedStore?.id.orEmpty(),
+                                        pax = paxValue,
+                                        adults = adults.toIntOrNull() ?: 0,
+                                        children = children.toIntOrNull() ?: 0,
+                                        status = "pending"
+                                    )
 
-                                isLoading = true
+                                    isLoading = true
 
-                                scope.launch {
-                                    homeViewModel.registerReservation(
-                                        request = request,
-                                        onSuccess = { folio ->
-                                            isLoading = false
-                                            navController.navigate(
-                                                Screen.SeatSelection.createRoute(
-                                                    unitId = selectedUnit!!.id,
-                                                    pickupTime = selectedPickup!!.pickupTime,
-                                                    reservationDate = selectedDate,
-                                                    hotelId = selectedHotel!!.id,
-                                                    agencyId = selectedAgency!!.id,
-                                                    client = clientName,
-                                                    adult = adults.toInt(),
-                                                    child = children.toInt(),
-                                                    zoneId = selectedZone!!.id,
-                                                    storeId = selectedStore!!.id,
-                                                    folio = folio
+                                    scope.launch {
+                                        homeViewModel.registerReservation(
+                                            request = request,
+                                            onSuccess = { folio ->
+                                                isLoading = false
+                                                navController.navigate(
+                                                    Screen.SeatSelection.createRoute(
+                                                        unitId = selectedUnit!!.id,
+                                                        pickupTime = selectedPickup!!.pickupTime,
+                                                        reservationDate = selectedDate,
+                                                        hotelId = selectedHotel!!.id,
+                                                        agencyId = selectedAgency?.id ?: "",
+                                                        client = clientName,
+                                                        adult = adults.toInt(),
+                                                        child = children.toInt(),
+                                                        zoneId = selectedZone?.id ?: "",
+                                                        storeId = selectedStore?.id ?: "",
+                                                        folio = folio
+                                                    )
                                                 )
-                                            )
-                                            Toast.makeText(context, "Reserva registrada con éxito. Folio: $folio", Toast.LENGTH_LONG).show()
-                                        },
-                                        onError = { errorMessage ->
-                                            isLoading = false
-                                            Toast.makeText(context, "Error al registrar reserva: $errorMessage", Toast.LENGTH_LONG).show()
-                                        }
+                                                Toast.makeText(context, "Reserva registrada con éxito. Folio: $folio", Toast.LENGTH_LONG).show()
+                                            },
+                                            onError = { errorMessage ->
+                                                isLoading = false
+                                                Toast.makeText(context, "Error al registrar reserva: $errorMessage", Toast.LENGTH_LONG).show()
+                                            }
+                                        )
+                                    }
+                                } else {
+                                    // Si ya existe un folio, navegar directamente
+                                    navController.navigate(
+                                        Screen.SeatSelection.createRoute(
+                                            unitId = selectedUnit!!.id,
+                                            pickupTime = selectedPickup!!.pickupTime,
+                                            reservationDate = selectedDate,
+                                            hotelId = selectedHotel!!.id,
+                                            agencyId = selectedAgency?.id ?: "",
+                                            client = clientName,
+                                            adult = adults.toInt(),
+                                            child = children.toInt(),
+                                            zoneId = selectedZone?.id ?: "",
+                                            storeId = selectedStore?.id ?: "",
+                                            folio = reservationFolio
+                                        )
                                     )
                                 }
-                            }
-                            else {
-                                // Si ya existe un folio, navegar directamente
-                                navController.navigate(
-                                    Screen.SeatSelection.createRoute(
-                                        unitId = selectedUnit!!.id,
-                                        pickupTime = selectedPickup!!.pickupTime,
-                                        reservationDate = selectedDate,
-                                        hotelId = selectedHotel!!.id,
-                                        agencyId = selectedAgency!!.id,
-                                        client = clientName,
-                                        adult = adults.toInt(),
-                                        child = children.toInt(),
-                                        zoneId = selectedZone!!.id,
-                                        storeId = selectedStore!!.id,
-                                        folio = reservationFolio
-                                    )
-                                )
                             }
                         },
                         modifier = Modifier.fillMaxWidth()

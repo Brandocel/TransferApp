@@ -24,7 +24,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, userI
     val isLoading by homeViewModel.isLoading.collectAsState()
     val homeData by homeViewModel.homeData.collectAsState(initial = null)
     val availabilityData by homeViewModel.availabilityData.collectAsState(initial = null)
-    val userAgency by homeViewModel.userAgency.collectAsState()
+    val userAgency by homeViewModel.userAgency.collectAsState() // Recuperamos la agencia del usuario
     val pendingReservations by homeViewModel.pendingReservations.collectAsState()
 
     // Estados para filtros
@@ -52,7 +52,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, userI
     LaunchedEffect(Unit) {
         if (userId.isNotEmpty()) {
             Log.d("HomeScreen", "Llamando a fetchUserAgency con userId=$userId")
-            homeViewModel.fetchUserAgency(userId)
+            homeViewModel.fetchUserAgency(userId) // Recuperamos la agencia del usuario
         } else {
             Log.e("HomeScreen", "userId está vacío, no se llamará a fetchUserAgency")
         }
@@ -60,30 +60,43 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, userI
         homeViewModel.initializeData(userId)
     }
 
-    if (userAgency != null && selectedAgency == null) {
-        Log.d("HomeScreen", "Agencia del usuario cargada por primera vez: ${    userAgency!!.name}")
-        selectedAgency = userAgency}
-    // Llenar campos del formulario si hay reservas pendientes
-    LaunchedEffect(pendingReservations, homeData) {
-        if (pendingReservations != null && homeData != null) {
+    // Llenar/limpiar campos del formulario según pendientes
+    LaunchedEffect(pendingReservations, homeData, userAgency) {
+        if (pendingReservations.isNullOrEmpty()) {
+            // No hay pendientes, limpiar todo
+            selectedZone = null
+            selectedStore = null
+            selectedHotel = null
+            selectedPickup = null
+            selectedUnit = null
+            pax = ""
+            adults = ""
+            children = ""
+            clientName = ""
+            selectedDate = ""
+            reservationFolio = ""
+            showAvailability = false
+            // La agencia la fijamos desde userAgency si está disponible
+            selectedAgency = userAgency
+        } else {
+            // Hay una pendiente, cargarla
             pendingReservations!!.firstOrNull()?.let { reservation ->
-                // Mapear IDs a los nombres correspondientes en `homeData`
-                selectedZone = homeData!!.zones.find { it.id == reservation.zoneId }
-                selectedStore = homeData!!.stores.find { it.id == reservation.storeId }
-                selectedHotel = homeData!!.hotels.find { it.id == reservation.hotelId }
-                selectedAgency = homeData!!.agencies.find { it.id == reservation.agencyId }
-                selectedUnit = homeData!!.units.find { it.id == reservation.unitId }
-                selectedPickup = homeData!!.pickups.find { it.pickupTime == reservation.pickupTime }
+                if (homeData != null) {
+                    selectedZone = homeData!!.zones.find { it.id == reservation.zoneId }
+                    selectedStore = homeData!!.stores.find { it.id == reservation.storeId }
+                    selectedHotel = homeData!!.hotels.find { it.id == reservation.hotelId }
+                    // Si hay una reserva pendiente, usamos la agencia de la reserva pendiente
+                    selectedAgency = homeData!!.agencies.find { it.id == reservation.agencyId }
+                    selectedUnit = homeData!!.units.find { it.id == reservation.unitId }
+                    selectedPickup = homeData!!.pickups.find { it.pickupTime == reservation.pickupTime }
 
-                // Otros datos directos
-                pax = reservation.pax.toString()
-                adults = reservation.adults.toString()
-                children = reservation.children.toString()
-                clientName = reservation.clientName
-                selectedDate = reservation.reservationDate.substringBefore("T")
-
-                // Guardar el folio
-                reservationFolio = reservation.folio
+                    pax = reservation.pax.toString()
+                    adults = reservation.adults.toString()
+                    children = reservation.children.toString()
+                    clientName = reservation.clientName
+                    selectedDate = reservation.reservationDate.substringBefore("T")
+                    reservationFolio = reservation.folio
+                }
             }
         }
     }
@@ -141,6 +154,10 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, userI
                             selectedHotel = null
                             selectedPickup = null
                             selectedUnit = null
+                            // Si se cambia de zona y no hay pendientes, restablecemos la agencia desde userAgency
+                            if (pendingReservations.isNullOrEmpty()) {
+                                selectedAgency = userAgency
+                            }
                         },
                         selectedStore = selectedStore,
                         onStoreSelected = { selectedStore = it },
@@ -180,5 +197,3 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, userI
         }
     }
 }
-
-
