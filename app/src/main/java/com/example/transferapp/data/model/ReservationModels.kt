@@ -54,3 +54,22 @@ data class ReservationResponseItem(
     @SerializedName("folio") val folio: String
 )
 
+data class PendingReservation(
+    val id: String,
+    val userId: String,
+    val zoneId: String,
+    val agencyId: String,
+    val hotelId: String,
+    val unitId: String,
+    val storeId: String,
+    val seatNumber: List<Int>,
+    val pickupTime: String,
+    val reservationDate: String,
+    val clientName: String,
+    val observations: String?,
+    val pax: Int,
+    val adults: Int,
+    val children: Int,
+    val status: String,
+    val folio: String
+)

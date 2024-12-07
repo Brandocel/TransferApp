@@ -4,6 +4,7 @@ import com.example.transferapp.data.model.Agency
 import com.example.transferapp.data.model.AvailabilityResponse
 import com.example.transferapp.data.model.HomeResponse
 import com.example.transferapp.data.model.MultipleReservationsRequest
+import com.example.transferapp.data.model.PendingReservation
 import com.example.transferapp.data.model.ReservationResponse
 import com.example.transferapp.data.model.SeatStatusResponse
 import com.example.transferapp.ui.home.components.Reservation
@@ -34,6 +35,11 @@ interface ApiService {
         @Query("hotelId") hotelId: String
     ): AvailabilityResponse
 
+    @GET("api/Reservation/pending-reservations/{userId}")
+    suspend fun getPendingReservations(
+        @Path("userId") userId: String
+    ): ApiResponse<List<PendingReservation>>
+
     @GET("api/Reservation/seat-status")
     suspend fun getSeatStatus(
         @Query("unitId") unitId: String,
@@ -60,7 +66,7 @@ interface ApiService {
 
 
     companion object {
-        private const val BASE_URL = "https://0312-187-150-214-35.ngrok-free.app/"
+        private const val BASE_URL = "https://f66c-2806-10be-a-833e-c5f-22cc-4140-6fdc.ngrok-free.app "
 
         //Local
        // private const val BASE_URL = "https://localhost:7130/"

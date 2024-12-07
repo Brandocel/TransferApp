@@ -27,13 +27,15 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import androidx.navigation.navArgument
+
 
 // Rutas de la app
 sealed class Screen(val route: String) {
     object Login : Screen("login")
     object Register : Screen("register")
     object Home : Screen("home")
-    object SeatSelection : Screen("seat_selection/{unitId}/{pickupTime}/{reservationDate}/{hotelId}/{agencyId}/{client}/{adult}/{child}/{zoneId}/{storeId}") {
+    object SeatSelection : Screen("seat_selection/{unitId}/{pickupTime}/{reservationDate}/{hotelId}/{agencyId}/{client}/{adult}/{child}/{zoneId}/{storeId}/{folio}") {
         fun createRoute(
             unitId: String,
             pickupTime: String,
@@ -44,14 +46,15 @@ sealed class Screen(val route: String) {
             adult: Int,
             child: Int,
             zoneId: String,
-            storeId: String
+            storeId: String,
+            folio: String // Agrega folio como parámetro
         ): String {
             val encodedClient = URLEncoder.encode(client.ifEmpty { "N/A" }, StandardCharsets.UTF_8.toString())
-            return "seat_selection/$unitId/$pickupTime/$reservationDate/$hotelId/$agencyId/$encodedClient/$adult/$child/$zoneId/$storeId"
+            val encodedFolio = URLEncoder.encode(folio.ifEmpty { "N/A" }, StandardCharsets.UTF_8.toString())
+            return "seat_selection/$unitId/$pickupTime/$reservationDate/$hotelId/$agencyId/$encodedClient/$adult/$child/$zoneId/$storeId/$encodedFolio"
         }
-
-
     }
+
 }
 
 @Composable
@@ -90,7 +93,8 @@ fun AppNavigation(
                 navArgument("adult") { type = NavType.IntType },
                 navArgument("child") { type = NavType.IntType },
                 navArgument("zoneId") { type = NavType.StringType },
-                navArgument("storeId") { type = NavType.StringType }
+                navArgument("storeId") { type = NavType.StringType },
+                navArgument("folio") { type = NavType.StringType }
             )
         ) { backStackEntry ->
             val unitId = backStackEntry.arguments?.getString("unitId")!!
@@ -103,6 +107,7 @@ fun AppNavigation(
             val child = backStackEntry.arguments?.getInt("child")!!
             val zoneId = backStackEntry.arguments?.getString("zoneId")!!
             val storeId = backStackEntry.arguments?.getString("storeId")!!
+            val folio = backStackEntry.arguments?.getString("folio")!!
 
             SeatSelectionScreen(
                 navController = navController,
@@ -117,7 +122,8 @@ fun AppNavigation(
                 pickupTime = pickupTime,
                 reservationDate = reservationDate,
                 hotelId = hotelId,
-                userId = userId // Pasamos el userId extraído del token
+                userId = userId, // Pasamos el userId extraído del token
+                folio = folio
             )
         }
     }

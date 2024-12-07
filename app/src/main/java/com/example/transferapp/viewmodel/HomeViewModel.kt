@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import android.util.Log
+import com.example.transferapp.data.model.PendingReservation
 
 class HomeViewModel(private val homeRepository: HomeRepository) : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
@@ -31,6 +32,33 @@ class HomeViewModel(private val homeRepository: HomeRepository) : ViewModel() {
 
     private val _reservations = MutableStateFlow<List<Reservation>>(emptyList())
     val reservations: StateFlow<List<Reservation>> = _reservations
+
+    private val _pendingReservations = MutableStateFlow<List<PendingReservation>?>(null)
+    val pendingReservations: StateFlow<List<PendingReservation>?> = _pendingReservations
+
+    fun fetchPendingReservations(userId: String) {
+        viewModelScope.launch {
+            try {
+                val response = homeRepository.getPendingReservations(userId)
+                if (response.success) {
+                    _pendingReservations.value = response.data
+                } else {
+                    _pendingReservations.value = null
+                }
+            } catch (e: Exception) {
+                Log.e("HomeViewModel", "Error al obtener reservas pendientes: ${e.message}")
+                _pendingReservations.value = null
+            }
+        }
+    }
+
+    // Método para inicializar datos
+    fun initializeData(userId: String) {
+        fetchHomeData()
+        fetchUserAgency(userId)
+        fetchPendingReservations(userId)
+    }
+
 
     fun fetchUserReservations(userId: String) {
         viewModelScope.launch {

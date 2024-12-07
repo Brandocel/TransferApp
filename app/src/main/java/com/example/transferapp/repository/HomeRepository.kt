@@ -11,6 +11,10 @@ import com.example.transferapp.ui.home.components.Reservation
 
 class HomeRepository(private val apiService: ApiService) {
 
+    // Obtener reservas pendientes
+    suspend fun getPendingReservations(userId: String): ApiResponse<List<PendingReservation>> {
+        return apiService.getPendingReservations(userId)
+    }
     // Obtener toda la información necesaria para la pantalla de inicio
     suspend fun fetchAllInfo(): HomeResponse {
         return apiService.getAllInfo()

@@ -43,7 +43,8 @@ fun SeatSelectionScreen(
     pickupTime: String,
     reservationDate: String,
     hotelId: String,
-    userId: String // Se obtiene del token
+    userId: String, // Se obtiene del token
+    folio: String
 ) {
     LaunchedEffect(Unit) {
         viewModel.fetchAgencyName(agencyId)
@@ -188,6 +189,12 @@ fun SeatSelectionScreen(
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
+                    Text(
+                        text = "Folio: ${if (folio.isNotEmpty()) folio else "N/A"}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
                     // Mostrar los datos actualizados
                     Text(text = "Cliente: $client")
                     Text(text = "Agencia: ${agencyName ?: "Cargando..."}")

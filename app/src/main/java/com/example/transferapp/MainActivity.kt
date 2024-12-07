@@ -102,7 +102,8 @@ class MainActivity : ComponentActivity() {
                             navArgument("adult") { type = NavType.IntType },
                             navArgument("child") { type = NavType.IntType },
                             navArgument("zoneId") { type = NavType.StringType },
-                            navArgument("storeId") { type = NavType.StringType }
+                            navArgument("storeId") { type = NavType.StringType },
+                            navArgument("folio") { type = NavType.StringType }
                         )
                     ) { backStackEntry ->
                         val unitId = backStackEntry.arguments?.getString("unitId")!!
@@ -115,6 +116,7 @@ class MainActivity : ComponentActivity() {
                         val child = backStackEntry.arguments?.getInt("child")!!
                         val zoneId = backStackEntry.arguments?.getString("zoneId")!!
                         val storeId = backStackEntry.arguments?.getString("storeId")!!
+                        val folio = backStackEntry.arguments?.getString("folio")!!
 
                         SeatSelectionScreen(
                             navController = navController,
@@ -129,7 +131,8 @@ class MainActivity : ComponentActivity() {
                             pickupTime = pickupTime,
                             reservationDate = reservationDate,
                             hotelId = hotelId,
-                            userId = userId // Pasa aquí el userId del token
+                            userId = userId, // Pasa aquí el userId del token
+                            folio = folio
                         )
                     }
                 }

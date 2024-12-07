@@ -54,7 +54,8 @@ fun HomeContent(
     onAdultsEnabledChange: (Boolean) -> Unit,
     clientNameEnabled: Boolean,
     onClientNameEnabledChange: (Boolean) -> Unit,
-    showAvailability: Boolean
+    showAvailability: Boolean,
+    reservationFolio: String
 ) {
     // Logs para debug
     Log.d("HomeContent", "Agencias disponibles: ${homeData.agencies.joinToString { it.name }}")
@@ -66,6 +67,14 @@ fun HomeContent(
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
+        if (reservationFolio.isNotEmpty()) {
+            Text(
+                text = "Folio de la Reserva: $reservationFolio",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+        }
         // Selector de Zonas
         Log.d("HomeContent", "Zonas disponibles: ${homeData.zones.joinToString { it.name }}")
         FilterDropdown(
@@ -332,7 +341,8 @@ fun HomeContent(
                                         adult = adults.toInt(),
                                         child = children.toInt(),
                                         zoneId = selectedZone!!.id,
-                                        storeId = selectedStore!!.id
+                                        storeId = selectedStore!!.id,
+                                        folio = reservationFolio
                                     )
                                 )
                             } else {

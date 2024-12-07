@@ -25,6 +25,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, userI
     val homeData by homeViewModel.homeData.collectAsState(initial = null)
     val availabilityData by homeViewModel.availabilityData.collectAsState(initial = null)
     val userAgency by homeViewModel.userAgency.collectAsState()
+    val pendingReservations by homeViewModel.pendingReservations.collectAsState()
 
     // Estados para filtros
     var selectedZone by remember { mutableStateOf<Zone?>(null) }
@@ -41,27 +42,41 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, userI
     var clientName by remember { mutableStateOf("") }
     var selectedDate by remember { mutableStateOf("") }
 
+    // Estado para almacenar el folio
+    var reservationFolio by remember { mutableStateOf("") }
+
     var adultsEnabled by remember { mutableStateOf(false) }
     var clientNameEnabled by remember { mutableStateOf(false) }
     var showAvailability by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        // Obtenemos la data inicial
-        homeViewModel.fetchHomeData()
-
-        // Obtenemos la agencia del usuario solo si userId no está vacío
-        if (userId.isNotEmpty()) {
-            Log.d("HomeScreen", "Llamando a fetchUserAgency con userId=$userId")
-            homeViewModel.fetchUserAgency(userId)
-        } else {
-            Log.e("HomeScreen", "userId está vacío, no se llamará a fetchUserAgency")
-        }
+        // Inicializamos la data
+        homeViewModel.initializeData(userId)
     }
 
-    // Cuando obtengas userAgency, si selectedAgency todavía es null, asígnala solo una vez.
-    if (userAgency != null && selectedAgency == null) {
-        Log.d("HomeScreen", "Agencia del usuario cargada por primera vez: ${    userAgency!!.name}")
-        selectedAgency = userAgency
+    // Llenar campos del formulario si hay reservas pendientes
+    LaunchedEffect(pendingReservations, homeData) {
+        if (pendingReservations != null && homeData != null) {
+            pendingReservations!!.firstOrNull()?.let { reservation ->
+                // Mapear IDs a los nombres correspondientes en `homeData`
+                selectedZone = homeData!!.zones.find { it.id == reservation.zoneId }
+                selectedStore = homeData!!.stores.find { it.id == reservation.storeId }
+                selectedHotel = homeData!!.hotels.find { it.id == reservation.hotelId }
+                selectedAgency = homeData!!.agencies.find { it.id == reservation.agencyId }
+                selectedUnit = homeData!!.units.find { it.id == reservation.unitId }
+                selectedPickup = homeData!!.pickups.find { it.pickupTime == reservation.pickupTime }
+
+                // Otros datos directos
+                pax = reservation.pax.toString()
+                adults = reservation.adults.toString()
+                children = reservation.children.toString()
+                clientName = reservation.clientName
+                selectedDate = reservation.reservationDate.substringBefore("T")
+
+                // Guardar el folio
+                reservationFolio = reservation.folio
+            }
+        }
     }
 
     ModalNavigationDrawer(
@@ -72,12 +87,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, userI
                 reservations = homeViewModel.reservations.collectAsState().value,
                 onFetchReservations = {
                     coroutineScope.launch {
-                        if (userId.isNotEmpty()) {
-                            Log.d("HomeScreen", "Obteniendo reservas del usuario con userId=$userId")
-                            homeViewModel.fetchUserReservations(userId)
-                        } else {
-                            Log.e("HomeScreen", "userId está vacío, no se obtendrán reservas")
-                        }
+                        homeViewModel.fetchUserReservations(userId)
                     }
                 },
                 onCloseMenu = {
@@ -105,10 +115,10 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, userI
                     CircularProgressIndicator()
                 }
             } else {
-                homeData?.let {
+                homeData?.let { homeInfo ->
                     HomeContent(
                         navController = navController,
-                        homeData = it,
+                        homeData = homeInfo,
                         availabilityData = availabilityData,
                         paddingValues = paddingValues,
                         fetchAvailability = { unitId, pickupTime, reservationDate, hotelId ->
@@ -119,7 +129,6 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, userI
                         onZoneSelected = { newZone ->
                             selectedZone = newZone
                             selectedStore = null
-                            // IMPORTANTE: Ya no ponemos onAgencySelected(null) aquí
                             selectedHotel = null
                             selectedPickup = null
                             selectedUnit = null
@@ -127,10 +136,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, userI
                         selectedStore = selectedStore,
                         onStoreSelected = { selectedStore = it },
                         selectedAgency = selectedAgency,
-                        onAgencySelected = {
-                            // Si no quieres que se cambie una vez obtenida, no hagas nada aquí.
-                            // selectedAgency = it
-                        },
+                        onAgencySelected = {},
                         selectedHotel = selectedHotel,
                         onHotelSelected = { selectedHotel = it },
                         selectedPickup = selectedPickup,
@@ -151,7 +157,8 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, userI
                         onAdultsEnabledChange = { adultsEnabled = it },
                         clientNameEnabled = clientNameEnabled,
                         onClientNameEnabledChange = { clientNameEnabled = it },
-                        showAvailability = showAvailability
+                        showAvailability = showAvailability,
+                        reservationFolio = reservationFolio
                     )
                 } ?: run {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -162,6 +169,5 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, userI
         }
     }
 }
-
 
 
