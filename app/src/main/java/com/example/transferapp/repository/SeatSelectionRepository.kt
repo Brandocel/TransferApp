@@ -26,10 +26,16 @@ class SeatSelectionRepository(private val apiService: ApiService) {
     }
 
     // Agregar múltiples reservaciones
-    suspend fun addMultipleReservations(request: MultipleReservationsRequest): ReservationResponse {
-        Log.d("Repository", "Adding multiple reservations with request: $request")
-        return apiService.addMultipleReservations(request)
+//    suspend fun addMultipleReservations(request: MultipleReservationsRequest): ReservationResponse {
+//        Log.d("Repository", "Adding multiple reservations with request: $request")
+//        return apiService.addMultipleReservations(request)
+//    }
+
+    suspend fun updateReservation(request: MultipleReservationsRequest): ReservationResponse {
+        Log.d("Repository", "Updating reservation with request: $request")
+        return apiService.updateReservation(request)
     }
+
 
     suspend fun getAgencyNameById(agencyId: String): String {
         Log.d("Repository", "Fetching agency name for ID: $agencyId")

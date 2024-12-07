@@ -222,7 +222,6 @@ fun SeatSelectionScreen(
                             if (selectedSeats.size == maxSelectableSeats) {
                                 showDialog = true
                             } else {
-                                // Llamar a `showSnackbar` dentro de la corrutina del scope
                                 coroutineScope.launch {
                                     snackbarHostState.showSnackbar("Debes seleccionar exactamente $maxSelectableSeats asientos.")
                                 }
@@ -232,6 +231,45 @@ fun SeatSelectionScreen(
                         enabled = selectedSeats.size <= maxSelectableSeats
                     ) {
                         Text("Reservar")
+                    }
+
+                    if (showDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showDialog = false },
+                            title = { Text("Confirmar Reserva") },
+                            text = { Text("¿Estás seguro de querer actualizar esta reserva?") },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    showDialog = false
+                                    val request = MultipleReservationsRequest(
+                                        userId = userId,
+                                        zoneId = zoneId,
+                                        agencyId = agencyId,
+                                        hotelId = hotelId,
+                                        unitId = unitId,
+                                        seatNumber = selectedSeats.toList(),
+                                        pickupTime = pickupTime,
+                                        reservationDate = reservationDate,
+                                        clientName = client,
+                                        observations = "Sin observaciones",
+                                        storeId = storeId,
+                                        pax = maxSelectableSeats,
+                                        adults = adult,
+                                        children = child,
+                                        status = "paid",
+                                        folio = folio // El folio debe estar disponible para actualizar
+                                    )
+                                    viewModel.updateReservation(request) // Ahora usamos updateReservation
+                                }) {
+                                    Text("Confirmar")
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showDialog = false }) {
+                                    Text("Cancelar")
+                                }
+                            }
+                        )
                     }
 
 
@@ -245,7 +283,7 @@ fun SeatSelectionScreen(
                             confirmButton = {
                                 TextButton(onClick = {
                                     showDialog = false
-                                    viewModel.createMultipleReservations(
+                                    viewModel.updateReservation(
                                         MultipleReservationsRequest(
                                             userId = userId,
                                             zoneId = zoneId,
@@ -261,9 +299,11 @@ fun SeatSelectionScreen(
                                             pax = maxSelectableSeats,
                                             adults = adult,
                                             children = child,
-                                            status = ""
+                                            status = "paid",
+                                            folio = folio // Agregar el folio para el PUT
                                         )
                                     )
+
                                 }) {
                                     Text("Confirmar")
                                 }
@@ -315,8 +355,7 @@ fun SeatSelectionScreen(
 
         if (reservationResponse?.success == true) {
             reservationResponse!!.data?.let { folio ->
-                Log.d("SeatSelectionScreen", "Reservation was successful. Folio: $folio")
-
+                Log.d("SeatSelectionScreen", "Reservation updated successfully. Folio: $folio")
                 reservationData = ReservationResponseItem(
                     id = folio,
                     userId = userId,
@@ -336,16 +375,14 @@ fun SeatSelectionScreen(
                     status = "",
                     folio = folio
                 )
-
                 showTicket = true
-                Log.d("SeatSelectionScreen", "Ticket is being displayed with folio: $folio")
             } ?: run {
                 Log.e("SeatSelectionScreen", "Reservation data is null.")
             }
         } else if (reservationResponse != null) {
-            Log.d("SeatSelectionScreen", "Reservation failed. Message: ${reservationResponse?.message}")
+            Log.d("SeatSelectionScreen", "Reservation update failed. Message: ${reservationResponse?.message}")
             coroutineScope.launch {
-                snackbarHostState.showSnackbar("Error en la reserva: ${reservationResponse?.message}")
+                snackbarHostState.showSnackbar("Error al actualizar la reserva: ${reservationResponse?.message}")
             }
         }
 

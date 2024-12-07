@@ -48,9 +48,9 @@ class HomeRepository(private val apiService: ApiService) {
     }
 
     // Agregar múltiples reservas
-    suspend fun addMultipleReservations(request: MultipleReservationsRequest): ReservationResponse {
-        return apiService.addMultipleReservations(request)
-    }
+//    suspend fun addMultipleReservations(request: MultipleReservationsRequest): ReservationResponse {
+//        return apiService.addMultipleReservations(request)
+//    }
 
     // Obtener las reservas de un usuario específico
     suspend fun getUserReservations(userId: String): ApiResponse<List<Reservation>> {

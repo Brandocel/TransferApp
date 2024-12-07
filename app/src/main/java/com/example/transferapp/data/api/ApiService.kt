@@ -14,6 +14,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -56,10 +57,16 @@ interface ApiService {
         @Query("hotelId") hotelId: String
     ): SeatStatusResponse
 
-    @POST("api/Reservation/add-reservation")
-    suspend fun addMultipleReservations(
+//    @POST("api/Reservation/add-reservation")
+//    suspend fun addMultipleReservations(
+//        @Body request: MultipleReservationsRequest
+//    ): ReservationResponse
+
+    @PUT("api/Reservation/update-reservation")
+    suspend fun updateReservation(
         @Body request: MultipleReservationsRequest
     ): ReservationResponse
+
 
     @GET("api/Home/user-reservations/{userId}")
     suspend fun getUserReservations(@Path("userId") userId: String): ApiResponse<List<Reservation>>

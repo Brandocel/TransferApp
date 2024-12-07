@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
+import com.example.transferapp.viewmodel.SeatSelectionViewModel
 
 class SeatSelectionViewModel(
     private val repository: SeatSelectionRepository,
@@ -68,59 +69,87 @@ class SeatSelectionViewModel(
     fun clearReservationResponse() {
         _reservationResponse.value = null
     }
-
-    fun createMultipleReservations(request: MultipleReservationsRequest) {
-        // Log para verificar que se llama el método con el contenido de la solicitud
-        Log.d(TAG, "createMultipleReservations - Llamada iniciada con request: ${gson.toJson(request)}")
-
-        // Contador para identificar cuántas veces se ejecuta este método (opcional si quieres rastrear duplicados)
-        val callId = System.currentTimeMillis() // Usamos un timestamp único para rastrear cada llamada
-
+    fun updateReservation(request: MultipleReservationsRequest) {
+        Log.d(TAG, "updateReservation - Request: ${gson.toJson(request)}")
         viewModelScope.launch {
-            // Indicamos que el proceso está cargando
             _isLoading.value = true
-            Log.d(TAG, "[$callId] Cargando...")
-
             try {
-                // Log para indicar que estamos realizando la llamada a la API
-                Log.d(TAG, "[$callId] Realizando llamada a la API para crear múltiples reservaciones")
-
-                // Llamada a la API
-                val response = repository.addMultipleReservations(request)
-                Log.d(TAG, "[$callId] Respuesta cruda recibida de la API: ${gson.toJson(response)}")
-
-                // Verificación del tipo de dato `data` en la respuesta y manejo adecuado
-                if (response.data.isNotEmpty()) {
-                    Log.d(TAG, "[$callId] Reservación creada con éxito: ${response.data}")
-                } else {
-                    Log.e(TAG, "[$callId] `data` está vacío.")
-                }
-
-                // Actualizamos el estado con la respuesta procesada
+                val response = repository.updateReservation(request)
+                Log.d(TAG, "Reservation updated successfully: ${response.data}")
                 _reservationResponse.value = response
-
             } catch (e: Exception) {
-                // Log detallado del error
-                Log.e(TAG, "[$callId] Error al crear múltiples reservaciones", e)
+                Log.e(TAG, "Error updating reservation", e)
                 if (e is HttpException) {
-                    // Log para mostrar el cuerpo de error HTTP si lo hay
                     val errorBody = e.response()?.errorBody()?.string()
-                    Log.e(TAG, "[$callId] Cuerpo de Error HTTP: $errorBody")
+                    Log.e(TAG, "HTTP Error: $errorBody")
                 }
-
-                // Asignamos una respuesta vacía en caso de error
                 _reservationResponse.value = ReservationResponse(
                     success = false,
-                    message = e.message ?: "Error desconocido",
-                    data = ""
+                    message = e.message ?: "Unknown error",
+                    data = null.toString()
                 )
             } finally {
-                // Indicamos que la carga ha terminado
                 _isLoading.value = false
-                Log.d(TAG, "[$callId] Proceso finalizado para createMultipleReservations")
             }
         }
     }
+
+
+
+
+
+//    fun createMultipleReservations(request: MultipleReservationsRequest) {
+//        // Log para verificar que se llama el método con el contenido de la solicitud
+//        Log.d(TAG, "createMultipleReservations - Llamada iniciada con request: ${gson.toJson(request)}")
+//
+//        // Contador para identificar cuántas veces se ejecuta este método (opcional si quieres rastrear duplicados)
+//        val callId = System.currentTimeMillis() // Usamos un timestamp único para rastrear cada llamada
+//
+//        viewModelScope.launch {
+//            // Indicamos que el proceso está cargando
+//            _isLoading.value = true
+//            Log.d(TAG, "[$callId] Cargando...")
+//
+//            try {
+//                // Log para indicar que estamos realizando la llamada a la API
+//                Log.d(TAG, "[$callId] Realizando llamada a la API para crear múltiples reservaciones")
+//
+//                // Llamada a la API
+//                val response = repository.addMultipleReservations(request)
+//                Log.d(TAG, "[$callId] Respuesta cruda recibida de la API: ${gson.toJson(response)}")
+//
+//                // Verificación del tipo de dato `data` en la respuesta y manejo adecuado
+//                if (response.data.isNotEmpty()) {
+//                    Log.d(TAG, "[$callId] Reservación creada con éxito: ${response.data}")
+//                } else {
+//                    Log.e(TAG, "[$callId] `data` está vacío.")
+//                }
+//
+//                // Actualizamos el estado con la respuesta procesada
+//                _reservationResponse.value = response
+//
+//            } catch (e: Exception) {
+//                // Log detallado del error
+//                Log.e(TAG, "[$callId] Error al crear múltiples reservaciones", e)
+//                if (e is HttpException) {
+//                    // Log para mostrar el cuerpo de error HTTP si lo hay
+//                    val errorBody = e.response()?.errorBody()?.string()
+//                    Log.e(TAG, "[$callId] Cuerpo de Error HTTP: $errorBody")
+//                }
+//
+//                // Asignamos una respuesta vacía en caso de error
+//                _reservationResponse.value = ReservationResponse(
+//                    success = false,
+//                    message = e.message ?: "Error desconocido",
+//                    data = ""
+//                )
+//            } finally {
+//                // Indicamos que la carga ha terminado
+//                _isLoading.value = false
+//                Log.d(TAG, "[$callId] Proceso finalizado para createMultipleReservations")
+//            }
+//        }
+//    }
 
     fun fetchAgencyName(agencyId: String) {
         viewModelScope.launch {
