@@ -1,9 +1,6 @@
 package com.example.transferapp.ui.selection
 
-import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -14,18 +11,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.transferapp.R
 import com.example.transferapp.data.model.MultipleReservationsRequest
 import com.example.transferapp.data.model.ReservationResponseItem
+import com.example.transferapp.ui.selection.components.ReservationConfirmationDialog
+import com.example.transferapp.ui.selection.components.ReservationDetails
+import com.example.transferapp.ui.selection.components.SeatGrid
 import com.example.transferapp.ui.selection.components.TicketCard
 import com.example.transferapp.viewmodel.SeatSelectionViewModel
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,103 +37,35 @@ fun SeatSelectionScreen(
     pickupTime: String,
     reservationDate: String,
     hotelId: String,
-    userId: String, // Se obtiene del token
+    userId: String,
     folio: String
 ) {
-    LaunchedEffect(Unit) {
-        viewModel.fetchAgencyName(agencyId)
-        viewModel.fetchUserName(userId)
-        viewModel.fetchSeatStatus(
-            unitId = unitId,
-            pickupTime = pickupTime,
-            reservationDate = reservationDate,
-            hotelId = hotelId
-        )
-    }
+    val coroutineScope = rememberCoroutineScope()
+    val scrollState = rememberScrollState()
 
     val seatStatus by viewModel.seatStatus.collectAsState()
     val reservationResponse by viewModel.reservationResponse.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    val scrollState = rememberScrollState()
-
-    //Agencia,Name
     val agencyName by viewModel.agencyName.collectAsState()
     val userName by viewModel.userName.collectAsState()
-    // Agrega logs para confirmar los valores
-    Log.d("SeatSelectionScreen", "AgencyName en Composable: ${agencyName ?: "Cargando..."}")
-    Log.d("SeatSelectionScreen", "UserName en Composable: ${userName ?: "Cargando..."}")
 
-    val coroutineScope = rememberCoroutineScope()
     var isReservationConfirmed by remember { mutableStateOf(false) }
     val maxSelectableSeats = adult + child
     val selectedSeats = remember { mutableStateListOf<Int>() }
     var showDialog by remember { mutableStateOf(false) }
     var showTicket by remember { mutableStateOf(false) }
     var reservationData by remember { mutableStateOf<ReservationResponseItem?>(null) }
-    val gson = remember { Gson() }
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
+        viewModel.fetchAgencyName(agencyId)
+        viewModel.fetchUserName(userId)
+        viewModel.fetchSeatStatus(unitId, pickupTime, reservationDate, hotelId)
         showTicket = false
         reservationData = null
         selectedSeats.clear()
     }
 
-    // Limpia el estado de showTicket y reservationData al iniciar
-    LaunchedEffect(Unit) {
-        showTicket = false
-        reservationData = null
-    }
-
-    // Muestra el ticket si la reserva es exitosa
-
-    LaunchedEffect(Unit) {
-        Log.d("SeatSelectionScreen", "Initializing SeatSelectionScreen")
-        // Reinicia los estados al entrar en la pantalla
-        showTicket = false
-        reservationData = null
-
-        // Llama al ViewModel para cargar los datos de los asientos
-        viewModel.fetchSeatStatus(
-            unitId = unitId,
-            pickupTime = pickupTime,
-            reservationDate = reservationDate,
-            hotelId = hotelId
-        )
-    }
-
-    LaunchedEffect(Unit) {
-        Log.d("SeatSelectionScreen", "Initializing SeatSelectionScreen")
-        // Reinicia los estados al entrar en la pantalla
-        showTicket = false
-        reservationData = null
-        showDialog = false
-
-        // Llama al ViewModel para cargar los datos de los asientos
-        viewModel.fetchSeatStatus(
-            unitId = unitId,
-            pickupTime = pickupTime,
-            reservationDate = reservationDate,
-            hotelId = hotelId
-        )
-    }
-
-    LaunchedEffect(Unit) {
-        Log.d("SeatSelectionScreen", "Initializing SeatSelectionScreen")
-        // Reinicia los estados al entrar en la pantalla
-        showTicket = false
-        reservationData = null
-        showDialog = false
-        viewModel.clearReservationResponse() // Limpia la respuesta anterior si es necesario
-
-        // Llama al ViewModel para cargar los datos de los asientos
-        viewModel.fetchSeatStatus(
-            unitId = unitId,
-            pickupTime = pickupTime,
-            reservationDate = reservationDate,
-            hotelId = hotelId
-        )
-    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -151,7 +77,7 @@ fun SeatSelectionScreen(
                 }
             )
         },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) } // Host para mostrar mensajes
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { paddingValues ->
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -166,22 +92,17 @@ fun SeatSelectionScreen(
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-                    Text(
-                        text = "Folio: ${if (folio.isNotEmpty()) folio else "N/A"}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                    ReservationDetails(
+                        client = client,
+                        agencyName = agencyName ?: "Cargando...",
+                        userName = userName ?: "Cargando...",
+                        adult = adult,
+                        child = child,
+                        folio = folio
                     )
-                    // Mostrar los datos actualizados
-                    Text(text = "Cliente: $client")
-                    Text(text = "Agencia: ${agencyName ?: "Cargando..."}")
-                    Text(text = "Representante: ${userName ?: "Cargando..."}")
-                    Text(text = "Adultos: $adult")
-                    Text(text = "Niños: $child")
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Asientos
                     SeatGrid(
                         totalSeats = data.totalSeats,
                         occupiedSeats = data.paid ?: emptyList(),
@@ -189,10 +110,7 @@ fun SeatSelectionScreen(
                         selectedSeats = selectedSeats,
                         maxSelectableSeats = maxSelectableSeats,
                         onUpdateSeat = {
-                            // Actualiza el estado en el servidor sin mostrar el Ticket
-                            showTicket = false
                             viewModel.updateReservation(
-
                                 MultipleReservationsRequest(
                                     userId = userId,
                                     zoneId = zoneId,
@@ -211,17 +129,11 @@ fun SeatSelectionScreen(
                                     status = "pending",
                                     folio = folio
                                 )
-
                             )
-                            showTicket = false
                         }
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
-
-                    val coroutineScope = rememberCoroutineScope()
-
-
 
                     Button(
                         onClick = {
@@ -233,85 +145,40 @@ fun SeatSelectionScreen(
                                 }
                             }
                         },
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = selectedSeats.size <= maxSelectableSeats
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Reservar")
                     }
 
-// Diálogo de Confirmación
                     if (showDialog) {
-                        AlertDialog(
-                            onDismissRequest = { showDialog = false },
-                            title = { Text("Confirmar Reserva") },
-                            text = { Text("¿Estás seguro de querer reservar estos asientos?") },
-                            confirmButton = {
-                                TextButton(onClick = {
-                                    showDialog = false
-                                    isReservationConfirmed = true // Marcar como confirmada la reserva
-                                    viewModel.updateReservation(
-                                        MultipleReservationsRequest(
-                                            userId = userId,
-                                            zoneId = zoneId,
-                                            agencyId = agencyId,
-                                            hotelId = hotelId,
-                                            unitId = unitId,
-                                            seatNumber = selectedSeats.toList(),
-                                            pickupTime = pickupTime,
-                                            reservationDate = reservationDate,
-                                            clientName = client,
-                                            observations = "Sin observaciones",
-                                            storeId = storeId,
-                                            pax = maxSelectableSeats,
-                                            adults = adult,
-                                            children = child,
-                                            status = "paid",
-                                            folio = folio // Agregar el folio para el PUT
-                                        )
+                        ReservationConfirmationDialog(
+                            onConfirm = {
+                                showDialog = false
+                                isReservationConfirmed = true
+                                viewModel.updateReservation(
+                                    MultipleReservationsRequest(
+                                        userId = userId,
+                                        zoneId = zoneId,
+                                        agencyId = agencyId,
+                                        hotelId = hotelId,
+                                        unitId = unitId,
+                                        seatNumber = selectedSeats.toList(),
+                                        pickupTime = pickupTime,
+                                        reservationDate = reservationDate,
+                                        clientName = client,
+                                        observations = "Reserva confirmada",
+                                        storeId = storeId,
+                                        pax = maxSelectableSeats,
+                                        adults = adult,
+                                        children = child,
+                                        status = "paid",
+                                        folio = folio
                                     )
-                                }) {
-                                    Text("Confirmar")
-                                }
+                                )
                             },
-                            dismissButton = {
-                                TextButton(onClick = { showDialog = false }) {
-                                    Text("Cancelar")
-                                }
-                            }
+                            onDismiss = { showDialog = false }
                         )
                     }
-
-// Manejo del estado de la reserva
-                    LaunchedEffect(reservationResponse) {
-                        if (isReservationConfirmed && reservationResponse?.success == true && reservationResponse?.data != null) {
-                            reservationData = ReservationResponseItem(
-                                id = reservationResponse!!.data!!,
-                                userId = userId,
-                                zoneId = zoneId,
-                                agencyId = agencyId,
-                                hotelId = hotelId,
-                                unitId = unitId,
-                                seatNumber = selectedSeats.toList(),
-                                pickupTime = pickupTime,
-                                reservationDate = reservationDate,
-                                clientName = client,
-                                observations = "Reserva confirmada",
-                                storeId = storeId,
-                                pax = maxSelectableSeats,
-                                adults = adult,
-                                children = child,
-                                status = "paid",
-                                folio = folio
-                            )
-                            showTicket = true // Mostrar el ticket solo después de confirmar la reserva
-                        } else if (reservationResponse != null) {
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar("Error al actualizar la reserva: ${reservationResponse?.message}")
-                            }
-                        }
-                    }
-
-
                 }
             } ?: run {
                 Text(
@@ -320,43 +187,13 @@ fun SeatSelectionScreen(
                     color = MaterialTheme.colorScheme.error
                 )
             }
-
-
         }
-        DisposableEffect(Unit) {
-            onDispose {
-                if (!isReservationConfirmed) {
-                    Log.d("SeatSelectionScreen", "Limpiando asientos al salir de la pantalla")
-                    viewModel.updateReservation(
-                        MultipleReservationsRequest(
-                            userId = userId,
-                            zoneId = zoneId,
-                            agencyId = agencyId,
-                            hotelId = hotelId,
-                            unitId = unitId,
-                            seatNumber = emptyList(), // Enviar lista vacía
-                            pickupTime = pickupTime,
-                            reservationDate = reservationDate,
-                            clientName = client,
-                            observations = "Limpieza al salir",
-                            storeId = storeId,
-                            pax = maxSelectableSeats,
-                            adults = adult,
-                            children = child,
-                            status = "pending",
-                            folio = folio
-                        )
-                    )
-                }
-            }
-        }
-
 
         if (showTicket && reservationData != null) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0xAA000000)), // Fondo translúcido
+                    .background(Color(0xAA000000)),
                 contentAlignment = Alignment.Center
             ) {
                 TicketCard(
@@ -369,107 +206,5 @@ fun SeatSelectionScreen(
                 )
             }
         }
-
-
-    }
-
-}
-
-@Composable
-fun SeatGrid(
-    totalSeats: Int,
-    occupiedSeats: List<Int>?, // Permitir nulos
-    pendingSeats: List<Int>?, // Permitir nulos
-    selectedSeats: MutableList<Int>,
-    maxSelectableSeats: Int,
-    onUpdateSeat: () -> Unit // Callback para actualizar el estado del servidor
-) {
-    val seatsPerRow = 4 // Número de asientos por fila (2 columnas)
-    val rows = (totalSeats / seatsPerRow) + if (totalSeats % seatsPerRow != 0) 1 else 0
-
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        for (rowIndex in 0 until rows) {
-            Row(
-                horizontalArrangement = Arrangement.SpaceAround,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                for (colIndex in 0 until seatsPerRow) {
-                    val seatNumber = rowIndex * seatsPerRow + colIndex + 1
-                    if (seatNumber <= totalSeats) {
-                        val seatLabel = "${('A' + rowIndex)}${colIndex + 1}" // Genera etiqueta de asiento (ejemplo: A1, B2)
-                        SeatButton(
-                            seatLabel = seatLabel,
-                            seatNumber = seatNumber,
-                            isOccupied = occupiedSeats?.contains(seatNumber) == true,
-                            isPending = pendingSeats?.contains(seatNumber) == true,
-                            isSelected = seatNumber in selectedSeats,
-                            onSeatSelected = { selected ->
-                                if (selected) {
-                                    if (selectedSeats.size < maxSelectableSeats) {
-                                        selectedSeats.add(seatNumber)
-                                    }
-                                } else {
-                                    selectedSeats.remove(seatNumber)
-                                }
-                                onUpdateSeat() // Notificar cambios al servidor
-                            }
-                        )
-                    } else {
-                        Spacer(modifier = Modifier.size(50.dp))
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-        }
     }
 }
-
-
-
-@Composable
-fun SeatButton(
-    seatLabel: String,
-    seatNumber: Int,
-    isOccupied: Boolean,
-    isPending: Boolean,
-    isSelected: Boolean,
-    onSeatSelected: (Boolean) -> Unit
-) {
-    val seatState = when {
-        isOccupied -> R.drawable.reservado
-        isPending -> R.drawable.pendiente
-        isSelected -> R.drawable.seleccionado
-        else -> R.drawable.disponible
-    }
-
-    val isClickable = !isOccupied && !isPending
-
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .size(70.dp)
-            .clickable(enabled = isClickable) {
-                if (isClickable) {
-                    onSeatSelected(!isSelected)
-                }
-            }
-    ) {
-        Image(
-            painter = painterResource(id = seatState),
-            contentDescription = null,
-            modifier = Modifier.size(50.dp)
-        )
-        Text(
-            text = seatLabel,
-            fontSize = 14.sp,
-            color = Color.Black,
-            textAlign = TextAlign.Center
-        )
-    }
-}
-
-
-
