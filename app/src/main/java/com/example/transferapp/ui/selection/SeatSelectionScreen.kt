@@ -128,10 +128,39 @@ fun SeatSelectionScreen(
                                     children = child,
                                     status = "pending",
                                     folio = folio
-                                )
+                                ),
+                                onError = { errorMessage ->
+                                    coroutineScope.launch {
+                                        snackbarHostState.showSnackbar(errorMessage)
+                                    }
+                                    navController.navigate("home") {
+                                        popUpTo("home") { inclusive = true }
+                                    }
+                                    selectedSeats.clear() // Limpiar asientos seleccionados
+                                },
+                                onSuccess = {
+                                    coroutineScope.launch {
+                                        snackbarHostState.showSnackbar("Actualización exitosa.")
+                                    }
+                                }
                             )
+                        },
+                        onError = { errorMessage ->
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(errorMessage)
+                            }
+                            navController.navigate("home") {
+                                popUpTo("home") { inclusive = true }
+                            }
+                            selectedSeats.clear() // Limpiar asientos seleccionados
+                        },
+                        onSuccess = {
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar("Actualización exitosa.")
+                            }
                         }
                     )
+
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -173,12 +202,61 @@ fun SeatSelectionScreen(
                                         children = child,
                                         status = "paid",
                                         folio = folio
-                                    )
+                                    ),
+                                    onError = { errorMessage ->
+                                        coroutineScope.launch {
+                                            snackbarHostState.showSnackbar(errorMessage)
+                                        }
+                                        navController.navigate("home") {
+                                            popUpTo("home") { inclusive = true }
+                                        }
+                                        selectedSeats.clear()
+                                    },
+                                    onSuccess = {
+                                        coroutineScope.launch {
+                                            snackbarHostState.showSnackbar("Reserva confirmada exitosamente.")
+                                        }
+                                        showTicket = true // Mostrar el ticket al confirmar la reserva
+                                        reservationData = ReservationResponseItem(
+                                            id = folio,
+                                            userId = userId,
+                                            zoneId = zoneId,
+                                            agencyId = agencyId,
+                                            hotelId = hotelId,
+                                            unitId = unitId,
+                                            seatNumber = selectedSeats.toList(),
+                                            pickupTime = pickupTime,
+                                            reservationDate = reservationDate,
+                                            clientName = client,
+                                            observations = "Reserva confirmada",
+                                            storeId = storeId,
+                                            pax = maxSelectableSeats,
+                                            adults = adult,
+                                            children = child,
+                                            status = "paid",
+                                            folio = folio
+                                        )
+                                    }
                                 )
                             },
-                            onDismiss = { showDialog = false }
+                            onDismiss = { showDialog = false },
+                            onError = { errorMessage ->
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(errorMessage)
+                                }
+                                navController.navigate("home") {
+                                    popUpTo("home") { inclusive = true }
+                                }
+                                selectedSeats.clear()
+                            },
+                            onSuccess = {
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar("Reserva confirmada exitosamente.")
+                                }
+                            }
                         )
                     }
+
                 }
             } ?: run {
                 Text(

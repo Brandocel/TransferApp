@@ -8,7 +8,9 @@ import androidx.compose.runtime.Composable
 @Composable
 fun ReservationConfirmationDialog(
     onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onError: (String) -> Unit,
+    onSuccess: () -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -26,3 +28,4 @@ fun ReservationConfirmationDialog(
         }
     )
 }
+

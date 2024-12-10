@@ -13,7 +13,9 @@ fun SeatGrid(
     pendingSeats: List<Int>?,
     selectedSeats: MutableList<Int>,
     maxSelectableSeats: Int,
-    onUpdateSeat: () -> Unit
+    onUpdateSeat: () -> Unit,
+    onError: (String) -> Unit,
+    onSuccess: () -> Unit
 ) {
     val seatsPerRow = 4
     val rows = (totalSeats / seatsPerRow) + if (totalSeats % seatsPerRow != 0) 1 else 0
@@ -57,3 +59,5 @@ fun SeatGrid(
         }
     }
 }
+
+
