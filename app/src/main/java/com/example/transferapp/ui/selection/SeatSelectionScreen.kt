@@ -1,5 +1,6 @@
 package com.example.transferapp.ui.selection
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -57,6 +58,7 @@ fun SeatSelectionScreen(
     var reservationData by remember { mutableStateOf<ReservationResponseItem?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
 
+    // Limpieza inicial al cargar la pantalla
     LaunchedEffect(Unit) {
         viewModel.fetchAgencyName(agencyId)
         viewModel.fetchUserName(userId)
@@ -64,6 +66,42 @@ fun SeatSelectionScreen(
         showTicket = false
         reservationData = null
         selectedSeats.clear()
+    }
+
+    // Limpieza al salir de la pantalla
+    DisposableEffect(Unit) {
+        onDispose {
+            if (!isReservationConfirmed) {
+                coroutineScope.launch {
+                    viewModel.updateReservation(
+                        MultipleReservationsRequest(
+                            userId = userId,
+                            zoneId = zoneId,
+                            agencyId = agencyId,
+                            hotelId = hotelId,
+                            unitId = unitId,
+                            seatNumber = emptyList(), // Limpiar asientos seleccionados
+                            pickupTime = pickupTime,
+                            reservationDate = reservationDate,
+                            clientName = client,
+                            observations = "Limpieza al salir de la pantalla",
+                            storeId = storeId,
+                            pax = maxSelectableSeats,
+                            adults = adult,
+                            children = child,
+                            status = "", // Dejar estado vacío
+                            folio = folio
+                        ),
+                        onError = { errorMessage ->
+                            Log.e("SeatSelectionScreen", "Error limpiando asientos: $errorMessage")
+                        },
+                        onSuccess = {
+                            Log.d("SeatSelectionScreen", "Asientos limpiados correctamente al salir.")
+                        }
+                    )
+                }
+            }
+        }
     }
 
     Scaffold(
@@ -136,7 +174,7 @@ fun SeatSelectionScreen(
                                     navController.navigate("home") {
                                         popUpTo("home") { inclusive = true }
                                     }
-                                    selectedSeats.clear() // Limpiar asientos seleccionados
+                                    selectedSeats.clear()
                                 },
                                 onSuccess = {
                                     coroutineScope.launch {
@@ -152,7 +190,7 @@ fun SeatSelectionScreen(
                             navController.navigate("home") {
                                 popUpTo("home") { inclusive = true }
                             }
-                            selectedSeats.clear() // Limpiar asientos seleccionados
+                            selectedSeats.clear()
                         },
                         onSuccess = {
                             coroutineScope.launch {
@@ -160,7 +198,6 @@ fun SeatSelectionScreen(
                             }
                         }
                     )
-
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -216,7 +253,7 @@ fun SeatSelectionScreen(
                                         coroutineScope.launch {
                                             snackbarHostState.showSnackbar("Reserva confirmada exitosamente.")
                                         }
-                                        showTicket = true // Mostrar el ticket al confirmar la reserva
+                                        showTicket = true
                                         reservationData = ReservationResponseItem(
                                             id = folio,
                                             userId = userId,
