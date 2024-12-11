@@ -69,34 +69,36 @@ class SeatSelectionViewModel(
     fun clearReservationResponse() {
         _reservationResponse.value = null
     }
-    fun updateReservation(request: MultipleReservationsRequest) {
-        Log.d(TAG, "updateReservation - Request: ${gson.toJson(request)}")
+    fun updateReservation(request: MultipleReservationsRequest, onError: (String) -> Unit, onSuccess: () -> Unit) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
                 val response = repository.updateReservation(request)
-                Log.d(TAG, "Reservation updated successfully: ${response.data}")
-                _reservationResponse.value = response
-            } catch (e: Exception) {
-                Log.e(TAG, "Error updating reservation", e)
-                if (e is HttpException) {
-                    val errorBody = e.response()?.errorBody()?.string()
-                    Log.e(TAG, "HTTP Error: $errorBody")
+                if (response.success) {
+                    // Actualización exitosa
+                    _reservationResponse.value = response
+                    onSuccess()
+                } else {
+                    // Si el servidor responde con éxito `false`, tratamos como error
+                    onError(response.message)
                 }
-                _reservationResponse.value = ReservationResponse(
-                    success = false,
-                    message = e.message ?: "Unknown error",
-                    data = null.toString()
-                )
+            } catch (e: Exception) {
+                val errorMessage = if (e is HttpException && e.code() == 409) {
+                    // Parseamos el cuerpo de error para mensajes detallados de conflicto
+                    val errorBody = e.response()?.errorBody()?.string()
+                    errorBody ?: "Error de conflicto desconocido."
+                } else if (e is HttpException && e.code() == 404) {
+                    "Reserva no encontrada."
+                } else {
+                    e.message ?: "Error desconocido"
+                }
+
+                onError(errorMessage)
             } finally {
                 _isLoading.value = false
             }
         }
     }
-
-
-
-
 
 //    fun createMultipleReservations(request: MultipleReservationsRequest) {
 //        // Log para verificar que se llama el método con el contenido de la solicitud
