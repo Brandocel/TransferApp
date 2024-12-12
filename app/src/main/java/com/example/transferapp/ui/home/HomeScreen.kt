@@ -1,5 +1,6 @@
 package com.example.transferapp.ui.home
 
+import android.content.Intent
 import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -8,7 +9,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.lint.kotlin.metadata.internal.metadata.jvm.JvmProtoBuf.flags
 import androidx.navigation.NavController
+import com.example.transferapp.MainActivity
 import com.example.transferapp.data.model.*
 import com.example.transferapp.ui.home.components.SideMenuContent
 import com.example.transferapp.viewmodel.HomeViewModel
@@ -48,6 +52,25 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, userI
     var adultsEnabled by remember { mutableStateOf(false) }
     var clientNameEnabled by remember { mutableStateOf(false) }
     var showAvailability by remember { mutableStateOf(false) }
+
+
+    // Función para manejar el cierre de sesión
+    val context = LocalContext.current // Obtén el contexto de Compose
+    val onLogout: () -> Unit = {
+        homeViewModel.logout {
+            Log.d("HomeScreen", "Logout exitoso. Reiniciando actividad y navegando a login...")
+
+            // Reinicia la actividad completamente y redirige al login
+            val intent = Intent(context, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+            context.startActivity(intent)
+        }
+    }
+
+
+
+
 
     LaunchedEffect(Unit) {
         if (userId.isNotEmpty()) {
@@ -116,7 +139,8 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, userI
                     coroutineScope.launch {
                         drawerState.close()
                     }
-                }
+                },
+                onLogout = onLogout // Pasamos la función aquí
             )
         }
     ) {

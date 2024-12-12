@@ -55,7 +55,6 @@ data class Store(
     val id: String,
     val name: String,
     val zoneId: String
-
 )
 
 

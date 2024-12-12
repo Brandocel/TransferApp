@@ -1,15 +1,21 @@
 package com.example.transferapp.repository
 
+import android.content.SharedPreferences
 import android.util.Log
 import com.example.transferapp.data.api.AgencyInfo
 import com.example.transferapp.data.api.ApiGenericResponse
 import com.example.transferapp.data.api.ApiResponse
 import com.example.transferapp.data.api.ApiService
 import com.example.transferapp.data.api.UserInfo
+import com.example.transferapp.data.local.SessionManager
 import com.example.transferapp.data.model.*
 import com.example.transferapp.ui.home.components.Reservation
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-class HomeRepository(private val apiService: ApiService) {
+class HomeRepository(private val apiService: ApiService, private val sessionManager: SessionManager) {
+    private val repositoryScope = CoroutineScope(Dispatchers.IO)
 
     // Obtener reservas pendientes
     suspend fun getPendingReservations(userId: String): ApiResponse<List<PendingReservation>> {
@@ -55,6 +61,14 @@ class HomeRepository(private val apiService: ApiService) {
     // Obtener las reservas de un usuario específico
     suspend fun getUserReservations(userId: String): ApiResponse<List<Reservation>> {
         return apiService.getUserReservations(userId)
+    }
+
+    //Logout
+    fun clearUserSession() {
+        repositoryScope.launch {
+            sessionManager.clearAuthToken()
+            Log.d("SessionManager", "Token de sesión eliminado.")
+        }
     }
 
     // Obtener la agencia vinculada a un usuario

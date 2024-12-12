@@ -128,9 +128,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Botón para ir al registro
-        TextButton(onClick = { navController.navigate(Screen.Register.route) }) {
-            Text("¿No tienes una cuenta? Regístrate", color = primaryColor)
-        }
+
+
     }
 }

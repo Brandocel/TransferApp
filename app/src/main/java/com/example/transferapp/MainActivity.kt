@@ -1,5 +1,6 @@
 package com.example.transferapp
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -40,31 +41,25 @@ class MainActivity : ComponentActivity() {
 
             // Instancias necesarias
             val apiService = ApiService.create()
+            val sessionManager = SessionManager(context) // Inicialización de SessionManager
             val authRepository = AuthRepository(apiService)
-            val homeRepository = HomeRepository(apiService)
-            val sessionManager = SessionManager(context)
+            val homeRepository = HomeRepository(apiService, sessionManager) // Pasa SessionManager
             val seatSelectionRepository = SeatSelectionRepository(apiService)
 
-            // Crear la factory para AuthViewModel
+            // ViewModel para autenticación
             val authViewModelFactory = AuthViewModelFactory(authRepository, sessionManager)
-            val authViewModel: AuthViewModel = viewModel(
-                factory = authViewModelFactory
-            )
+            val authViewModel: AuthViewModel = viewModel(factory = authViewModelFactory)
 
-            // Crear la factory para HomeViewModel pasando solo homeRepository
-            val homeViewModelFactory = HomeViewModelFactory(homeRepository)
-            val homeViewModel: HomeViewModel = viewModel(
-                factory = homeViewModelFactory
-            )
+            // ViewModel para Home
+            val homeViewModelFactory = HomeViewModelFactory(homeRepository, sessionManager)
+            val homeViewModel: HomeViewModel = viewModel(factory = homeViewModelFactory)
 
-            // Crear la factory para SeatSelectionViewModel
+            // ViewModel para selección de asientos
             val seatSelectionViewModelFactory = SeatSelectionViewModelFactory(
                 repository = seatSelectionRepository,
                 apiService = apiService
             )
-            val seatSelectionViewModel: SeatSelectionViewModel = viewModel(
-                factory = seatSelectionViewModelFactory
-            )
+            val seatSelectionViewModel: SeatSelectionViewModel = viewModel(factory = seatSelectionViewModelFactory)
 
             // Obtener el userId del token de sesión
             val userId = runBlocking {
@@ -140,3 +135,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+

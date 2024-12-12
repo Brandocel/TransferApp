@@ -11,10 +11,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import android.util.Log
+import com.example.transferapp.data.local.SessionManager
 import com.example.transferapp.data.model.PendingReservation
 import com.example.transferapp.data.model.RegisterReservationRequest
 
-class HomeViewModel(private val homeRepository: HomeRepository) : ViewModel() {
+class HomeViewModel(private val homeRepository: HomeRepository, private val sessionManager: SessionManager) : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
@@ -57,6 +58,29 @@ class HomeViewModel(private val homeRepository: HomeRepository) : ViewModel() {
     }
 
 
+    //Cerrar sesion
+    fun logout(onLogoutComplete: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                Log.d("HomeViewModel", "Limpiando datos de sesión...")
+                homeRepository.clearUserSession()
+                Log.d("HomeViewModel", "Datos de sesión limpiados. Ejecutando callback...")
+                onLogoutComplete()
+            } catch (e: Exception) {
+                Log.e("HomeViewModel", "Error al cerrar sesión: ${e.message}", e)
+            }
+        }
+    }
+
+  //Sesion
+  fun clearUserSession() {
+      viewModelScope.launch {
+          sessionManager.clearAuthToken()
+          Log.d("SessionManager", "Token de sesión eliminado.")
+      }
+  }
+
+
 
     fun fetchPendingReservations(userId: String) {
         viewModelScope.launch {
@@ -74,7 +98,7 @@ class HomeViewModel(private val homeRepository: HomeRepository) : ViewModel() {
         }
     }
 
-    // Método para inicializar datos
+    //Método para inicializar datos
     fun initializeData(userId: String) {
         fetchHomeData()
         fetchUserAgency(userId)
@@ -159,12 +183,12 @@ class HomeViewModel(private val homeRepository: HomeRepository) : ViewModel() {
     }
 }
 
-class HomeViewModelFactory(private val homeRepository: HomeRepository) :
+class HomeViewModelFactory(private val homeRepository: HomeRepository,  private val sessionManager: SessionManager) :
     androidx.lifecycle.ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return HomeViewModel(homeRepository) as T
+            return HomeViewModel(homeRepository, sessionManager) as T
         }
         throw IllegalArgumentException("Clase ViewModel desconocida")
     }

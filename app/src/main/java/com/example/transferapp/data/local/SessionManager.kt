@@ -15,6 +15,8 @@ class SessionManager(private val context: Context) {
         val TOKEN_KEY = stringPreferencesKey("auth_token")
     }
 
+
+
     // Obtener el token
     val authToken: Flow<String?> = context.dataStore.data.map { preferences ->
         preferences[TOKEN_KEY]
@@ -33,4 +35,5 @@ class SessionManager(private val context: Context) {
             preferences.remove(TOKEN_KEY)
         }
     }
+
 }

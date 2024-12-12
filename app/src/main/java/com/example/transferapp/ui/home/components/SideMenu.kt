@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -15,28 +17,44 @@ fun SideMenuContent(
     isLoadingReservations: Boolean,
     reservations: List<Reservation>,
     onFetchReservations: () -> Unit,
-    onCloseMenu: () -> Unit // Callback para cerrar el menú si es necesario
+    onCloseMenu: () -> Unit,
+    onLogout: () -> Unit // Callback para cerrar sesión
 ) {
     LaunchedEffect(Unit) {
         onFetchReservations()
     }
 
-    // Limitar el ancho máximo del menú para evitar desbordamientos
     Box(
         modifier = Modifier
             .fillMaxHeight()
-            .widthIn(max = 300.dp) // Ancho máximo del menú
+            .widthIn(max = 300.dp)
             .background(MaterialTheme.colorScheme.surface)
             .padding(16.dp)
     ) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
-            // Título del menú
+            // Título del menú con ícono de cerrar sesión
             item {
-                Text(
-                    text ="Reservación",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Reservación",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    IconButton(
+                        onClick = { onLogout() },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ExitToApp,
+                            contentDescription = "Cerrar Sesión",
+                            tint = MaterialTheme.colorScheme.error // Ícono en rojo
+                        )
+                    }
+                }
             }
 
             // Muestra un estado de carga si los datos aún no están listos
@@ -57,12 +75,9 @@ fun SideMenuContent(
                     }
                 }
             } else {
-                // Ordenar las reservas por número del folio
                 val sortedReservations = reservations.sortedBy { reservation ->
                     reservation.folio.filter { it.isDigit() }.toIntOrNull() ?: Int.MAX_VALUE
                 }
-
-                // Lista de reservas ordenadas
                 items(sortedReservations) { reservation ->
                     ReservationCard(reservation)
                 }
@@ -82,6 +97,8 @@ fun SideMenuContent(
         }
     }
 }
+
+
 
 
 @Composable
