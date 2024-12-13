@@ -223,6 +223,13 @@ fun SeatSelectionScreen(
                             onConfirm = {
                                 showDialog = false
                                 isReservationConfirmed = true
+                                val seatsPerRow = 4
+                                val seatSectionIdentifiers = selectedSeats.map { seatNumber ->
+                                    val row = (seatNumber - 1) / seatsPerRow // Calcula la fila
+                                    val column = (seatNumber - 1) % seatsPerRow + 1 // Calcula la columna
+                                    "${'A' + row}$column" // Convierte la fila en letra (A, B, C, ...) y concatena con la columna
+                                }.joinToString(",") // Convierte la lista en una cadena separada por comas (por ejemplo, "A1,B2,C3")
+
                                 viewModel.updateReservation(
                                     MultipleReservationsRequest(
                                         userId = userId,
@@ -231,7 +238,7 @@ fun SeatSelectionScreen(
                                         hotelId = hotelId,
                                         unitId = unitId,
                                         seatNumber = selectedSeats.toList(),
-                                        seatSectionIdentifier ="",
+                                        seatSectionIdentifier = seatSectionIdentifiers,
                                         pickupTime = pickupTime,
                                         reservationDate = reservationDate,
                                         clientName = client,
@@ -265,6 +272,7 @@ fun SeatSelectionScreen(
                                             hotelId = hotelId,
                                             unitId = unitId,
                                             seatNumber = selectedSeats.toList(),
+                                            seatSectionIdentifiers = seatSectionIdentifiers,
                                             pickupTime = pickupTime,
                                             reservationDate = reservationDate,
                                             clientName = client,

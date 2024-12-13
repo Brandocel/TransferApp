@@ -70,6 +70,12 @@ fun TicketCard(
                 style = MaterialTheme.typography.bodyMedium
             )
 
+            // Asientos reservados
+            Text(
+                text = "Asientos Reservados: ${reservation.seatSectionIdentifiers}",
+                style = MaterialTheme.typography.bodyMedium
+            )
+
             // Detalles de pasajeros
             Text(
                 text = "Pasajeros (Pax): ${reservation.pax} (Adultos: ${reservation.adults}, Niños: ${reservation.children})",

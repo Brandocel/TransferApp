@@ -68,6 +68,7 @@ data class ReservationResponseItem(
     @SerializedName("hotelId") val hotelId: String,
     @SerializedName("unitId") val unitId: String,
     @SerializedName("seatNumber") val seatNumber: List<Int>,
+    val seatSectionIdentifiers: String,
     @SerializedName("pickupTime") val pickupTime: String,
     @SerializedName("reservationDate") val reservationDate: String,
     @SerializedName("clientName") val clientName: String,
