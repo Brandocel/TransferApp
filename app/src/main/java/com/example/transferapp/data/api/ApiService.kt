@@ -51,9 +51,8 @@ interface ApiService {
     @GET("api/Reservation/seat-status")
     suspend fun getSeatStatus(
         @Query("unitId") unitId: String,
-        @Query("pickupTime") pickupTime: String,
         @Query("reservationDate") reservationDate: String,
-        @Query("hotelId") hotelId: String
+        @Query("zoneId") zoneId: String
     ): SeatStatusResponse
 
 //    @POST("api/Reservation/add-reservation")

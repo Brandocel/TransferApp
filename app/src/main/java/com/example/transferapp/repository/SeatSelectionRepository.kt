@@ -14,15 +14,14 @@ class SeatSelectionRepository(private val apiService: ApiService) {
     // Obtener el estado de los asientos
     suspend fun getSeatStatus(
         unitId: String,
-        pickupTime: String,
         reservationDate: String,
-        hotelId: String
+        zoneId: String
     ): SeatStatusResponse {
         Log.d(
             "Repository",
-            "Fetching seat status for unitId=$unitId, pickupTime=$pickupTime, reservationDate=$reservationDate, hotelId=$hotelId"
+            "Fetching seat status for unitId=$unitId, reservationDate=$reservationDate, zonelId=$zoneId"
         )
-        return apiService.getSeatStatus(unitId, pickupTime, reservationDate, hotelId)
+        return apiService.getSeatStatus(unitId, reservationDate, zoneId)
     }
 
     // Agregar múltiples reservaciones

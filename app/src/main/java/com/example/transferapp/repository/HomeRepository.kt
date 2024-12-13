@@ -45,11 +45,10 @@ class HomeRepository(private val apiService: ApiService, private val sessionMana
     // Obtener el estado de los asientos de una unidad específica
     suspend fun getSeatStatus(
         unitId: String,
-        pickupTime: String,
         reservationDate: String,
-        hotelId: String
+        zoneId: String
     ): SeatStatusResponse {
-        return apiService.getSeatStatus(unitId, pickupTime, reservationDate, hotelId)
+        return apiService.getSeatStatus(unitId, reservationDate, zoneId)
     }
 
     // Agregar múltiples reservas

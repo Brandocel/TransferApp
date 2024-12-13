@@ -45,17 +45,17 @@ class SeatSelectionViewModel(
     private val _reservationResponse = MutableStateFlow<ReservationResponse?>(null)
     val reservationResponse: StateFlow<ReservationResponse?> = _reservationResponse
 
-    fun fetchSeatStatus(unitId: String, pickupTime: String, reservationDate: String, hotelId: String) {
+    fun fetchSeatStatus(unitId: String, reservationDate: String, zoneId: String) {
         if (_isLoading.value) {
             Log.w(TAG, "fetchSeatStatus está siendo ignorado porque ya hay una operación en curso.")
             return
         }
 
-        Log.d(TAG, "fetchSeatStatus llamado con unitId=$unitId, pickupTime=$pickupTime, reservationDate=$reservationDate, hotelId=$hotelId")
+        Log.d(TAG, "fetchSeatStatus llamado con unitId=$unitId, reservationDate=$reservationDate, zoneId=$zoneId")
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val response = repository.getSeatStatus(unitId, pickupTime, reservationDate, hotelId)
+                val response = repository.getSeatStatus(unitId,  reservationDate, zoneId)
                 Log.d(TAG, "Received seat status response: ${gson.toJson(response)}")
                 _seatStatus.value = response
             } catch (e: Exception) {

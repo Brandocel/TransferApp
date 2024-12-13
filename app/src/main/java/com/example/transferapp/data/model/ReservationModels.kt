@@ -10,6 +10,7 @@ data class MultipleReservationsRequest(
     @SerializedName("hotelId") val hotelId: String, // ID del hotel
     @SerializedName("unitId") val unitId: String, // ID de la unidad
     @SerializedName("seatNumber") val seatNumber: List<Int>, // Lista de números de asiento
+    @SerializedName("seatSectionIdentifier") val seatSectionIdentifier:String,
     @SerializedName("pickupTime") val pickupTime: String, // Hora de recogida
     @SerializedName("reservationDate") val reservationDate: String, // Fecha de la reservación
     @SerializedName("clientName") val clientName: String, // Nombre del cliente

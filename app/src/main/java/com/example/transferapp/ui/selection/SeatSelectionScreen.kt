@@ -62,7 +62,7 @@ fun SeatSelectionScreen(
     LaunchedEffect(Unit) {
         viewModel.fetchAgencyName(agencyId)
         viewModel.fetchUserName(userId)
-        viewModel.fetchSeatStatus(unitId, pickupTime, reservationDate, hotelId)
+        viewModel.fetchSeatStatus(unitId, reservationDate, zoneId)
         showTicket = false
         reservationData = null
         selectedSeats.clear()
@@ -81,6 +81,7 @@ fun SeatSelectionScreen(
                             hotelId = hotelId,
                             unitId = unitId,
                             seatNumber = emptyList(), // Limpiar asientos seleccionados
+                            seatSectionIdentifier = "",
                             pickupTime = pickupTime,
                             reservationDate = reservationDate,
                             clientName = client,
@@ -156,6 +157,7 @@ fun SeatSelectionScreen(
                                     hotelId = hotelId,
                                     unitId = unitId,
                                     seatNumber = selectedSeats.toList(),
+                                    seatSectionIdentifier = "",
                                     pickupTime = pickupTime,
                                     reservationDate = reservationDate,
                                     clientName = client,
@@ -229,6 +231,7 @@ fun SeatSelectionScreen(
                                         hotelId = hotelId,
                                         unitId = unitId,
                                         seatNumber = selectedSeats.toList(),
+                                        seatSectionIdentifier ="",
                                         pickupTime = pickupTime,
                                         reservationDate = reservationDate,
                                         clientName = client,
