@@ -177,20 +177,23 @@ fun HomeContent(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Selector de Unidades
-        val unitOptions = homeData.units.map { "${it.name} (${it.seatCount ?: "N/A"} asientos)" }
-        Log.d("HomeContent", "Unidades disponibles: $unitOptions")
+        // Selector de Unidades
+        val unitOptions = if (selectedZone != null) {
+            homeData.units.filter { it.zoneId == selectedZone.id }.map { "${it.name} (${it.seatCount ?: "N/A"} asientos)" }
+        } else emptyList()
+
         FilterDropdown(
             label = "Selecciona una Unidad",
             options = unitOptions,
             selectedOption = selectedUnit?.let { "${it.name} (${it.seatCount ?: "N/A"} asientos)" },
             onOptionSelected = { option ->
-                val unitName = option.substringBefore(" (")
-                val unitn = homeData.units.firstOrNull { it.name == unitName }
-                Log.d("HomeContent", "Unidad seleccionada: ${unitn?.name ?: "Ninguna"}")
-                onUnitSelected(unitn)
+                val unitName = option.substringBefore(" (") // Extrae el nombre de la unidad
+                val unit = homeData.units.firstOrNull { it.name == unitName && it.zoneId == selectedZone?.id }
+                onUnitSelected(unit)
             },
-            enabled = true
+            enabled = selectedZone != null // Habilitar solo si hay una zona seleccionada
         )
+
 
         // Información de la unidad seleccionada
         selectedUnit?.let { unit ->

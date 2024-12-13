@@ -36,10 +36,11 @@ data class Hotel(
 data class Unit(
     val id: String,
     val name: String,
-    val agencyId: String,
     @SerializedName("seatCount") val seatCount: Int?,
     val pricePerSeat: Double?,
-    val description: String?
+    val description: String?,
+    val isDelete: Boolean,
+    val zoneId:String
 )
 
 

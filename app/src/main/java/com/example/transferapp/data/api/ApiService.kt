@@ -82,7 +82,7 @@ interface ApiService {
         //private const val BASE_URL = "http://18.222.107.228:5028/"
 
         //Local
-        private const val BASE_URL = "https://f22e-2806-10be-a-833e-39d2-daed-8b3d-be76.ngrok-free.app/"
+        private const val BASE_URL = "https://c986-189-174-33-7.ngrok-free.app/"
 
         fun create(): ApiService {
             return Retrofit.Builder()
