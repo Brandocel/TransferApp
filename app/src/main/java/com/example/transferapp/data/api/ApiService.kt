@@ -32,9 +32,8 @@ interface ApiService {
     @GET("api/home/unit-availability")
     suspend fun getUnitAvailability(
         @Query("unitId") unitId: String,
-        @Query("pickupTime") pickupTime: String,
         @Query("reservationDate") reservationDate: String,
-        @Query("hotelId") hotelId: String
+        @Query("zoneId") zoneId: String
     ): AvailabilityResponse
 
     @POST("api/Reservation/register-reservation")
@@ -81,10 +80,10 @@ interface ApiService {
 
 
     companion object {
-        private const val BASE_URL = "http://18.222.107.228:5028/"
+        //private const val BASE_URL = "http://18.222.107.228:5028/"
 
         //Local
-       // private const val BASE_URL = "https://localhost:7130/"
+        private const val BASE_URL = "https://f22e-2806-10be-a-833e-39d2-daed-8b3d-be76.ngrok-free.app/"
 
         fun create(): ApiService {
             return Retrofit.Builder()

@@ -36,11 +36,10 @@ class HomeRepository(private val apiService: ApiService, private val sessionMana
     // Obtener la disponibilidad de una unidad específica
     suspend fun getUnitAvailability(
         unitId: String,
-        pickupTime: String,
         reservationDate: String,
-        hotelId: String
+        zoneId: String
     ): AvailabilityResponse {
-        return apiService.getUnitAvailability(unitId, pickupTime, reservationDate, hotelId)
+        return apiService.getUnitAvailability(unitId, reservationDate, zoneId)
     }
 
     // Obtener el estado de los asientos de una unidad específica

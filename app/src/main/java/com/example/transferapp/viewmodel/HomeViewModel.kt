@@ -164,12 +164,12 @@ class HomeViewModel(private val homeRepository: HomeRepository, private val sess
 
 
 
-    fun fetchUnitAvailability(unitId: String, pickupTime: String, reservationDate: String, hotelId: String) {
+    fun fetchUnitAvailability(unitId: String, reservationDate: String, zoneId: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            Log.d("HomeViewModel", "Iniciando fetchUnitAvailability para unitId: $unitId, pickupTime: $pickupTime, reservationDate: $reservationDate, hotelId: $hotelId")
+            Log.d("HomeViewModel", "Iniciando fetchUnitAvailability para unitId: $unitId, reservationDate: $reservationDate, hotelId: $zoneId")
             try {
-                val response = homeRepository.getUnitAvailability(unitId, pickupTime, reservationDate, hotelId)
+                val response = homeRepository.getUnitAvailability(unitId, reservationDate, zoneId)
                 Log.d("HomeViewModel", "Respuesta de getUnitAvailability: $response")
                 _availabilityData.value = response
             } catch (e: Exception) {

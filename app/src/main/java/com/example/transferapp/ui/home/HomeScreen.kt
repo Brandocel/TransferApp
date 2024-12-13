@@ -167,8 +167,8 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel, userI
                         homeData = homeInfo,
                         availabilityData = availabilityData,
                         paddingValues = paddingValues,
-                        fetchAvailability = { unitId, pickupTime, reservationDate, hotelId ->
-                            homeViewModel.fetchUnitAvailability(unitId, pickupTime, reservationDate, hotelId)
+                        fetchAvailability = { unitId, reservationDate, zoneId ->
+                            homeViewModel.fetchUnitAvailability(unitId, reservationDate, zoneId)
                             showAvailability = true
                         },
                         selectedZone = selectedZone,

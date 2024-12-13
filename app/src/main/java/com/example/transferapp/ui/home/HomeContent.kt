@@ -31,7 +31,7 @@ fun HomeContent(
     homeData: HomeData,
     availabilityData: AvailabilityResponse?,
     paddingValues: PaddingValues,
-    fetchAvailability: (String, String, String, String) -> Unit,
+    fetchAvailability: (String, String, String) -> Unit,
     selectedZone: Zone?,
     onZoneSelected: (Zone?) -> Unit,
     selectedStore: Store?,
@@ -308,9 +308,8 @@ fun HomeContent(
                         Log.d("HomeContent", "Parametros para fetchAvailability: unitId=${selectedUnit!!.id}, pickupTime=${selectedPickup!!.pickupTime}, reservationDate=$selectedDate, hotelId=${selectedHotel?.id ?: ""}")
                         fetchAvailability(
                             selectedUnit!!.id,
-                            selectedPickup!!.pickupTime,
                             selectedDate,
-                            selectedHotel!!.id
+                            selectedZone!!.id
                         )
                     } else {
                         Log.d("HomeContent", "No se cumplen las condiciones para fetchAvailability")
