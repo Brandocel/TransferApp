@@ -13,7 +13,26 @@ private val Context.dataStore by preferencesDataStore(name = "user_session")
 class SessionManager(private val context: Context) {
     companion object {
         val TOKEN_KEY = stringPreferencesKey("auth_token")
+        val USER_ID_KEY = stringPreferencesKey("user_id")
     }
+
+    // Obtener el userId
+    val userId: Flow<String?> = context.dataStore.data.map { preferences ->
+        preferences[USER_ID_KEY]
+    }
+
+    // Guardar el userId
+    suspend fun saveUserId(userId: String) {
+        context.dataStore.edit { preferences ->
+            preferences[USER_ID_KEY] = userId
+        }
+    }
+    suspend fun clearUserId() {
+        context.dataStore.edit { preferences ->
+            preferences.remove(USER_ID_KEY)
+        }
+    }
+
 
 
 

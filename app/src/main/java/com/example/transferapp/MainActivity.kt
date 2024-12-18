@@ -4,6 +4,11 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -31,6 +36,7 @@ import com.example.transferapp.viewmodel.SeatSelectionViewModelFactory
 import extractUserId
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,15 +67,18 @@ class MainActivity : ComponentActivity() {
             )
             val seatSelectionViewModel: SeatSelectionViewModel = viewModel(factory = seatSelectionViewModelFactory)
 
-            // Obtener el userId del token de sesión
+//            // Obtener el userId del token de sesión
+//            val userId = runBlocking {
+//                val token = sessionManager.authToken.first()
+//                if (!token.isNullOrEmpty()) extractUserId(token) else ""
+//            }
             val userId = runBlocking {
-                val token = sessionManager.authToken.first()
-                if (!token.isNullOrEmpty()) extractUserId(token) else ""
+                sessionManager.userId.firstOrNull() ?: ""
             }
 
             // Determina la ruta inicial basado en el estado del token
             val startDestination = runBlocking {
-                val token = sessionManager.authToken.first()
+                val token = sessionManager.authToken.firstOrNull()
                 if (!token.isNullOrEmpty()) Screen.Home.route else Screen.Login.route
             }
 
@@ -83,7 +92,14 @@ class MainActivity : ComponentActivity() {
                         RegisterScreen(navController, authViewModel)
                     }
                     composable(Screen.Home.route) {
-                        HomeScreen(navController, homeViewModel, userId)
+                        if (userId.isEmpty()) {
+                            // Muestra un indicador de carga mientras esperamos el userId
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator()
+                            }
+                        } else {
+                            HomeScreen(navController, homeViewModel, userId)
+                        }
                     }
                     composable(
                         route = Screen.SeatSelection.route,
