@@ -42,7 +42,7 @@ interface ApiService {
     ): ApiResponse<String>
 
 
-
+//Seccion de reservacion
     @GET("api/Reservation/pending-reservations/{userId}")
     suspend fun getPendingReservations(
         @Path("userId") userId: String
